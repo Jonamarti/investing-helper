@@ -66,7 +66,7 @@ jobs:
           # Renombrar el repo no rompe nada: el base sale de Pages, no de un
           # literal en el repositorio.
           VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/web/dist
       - id: deployment
