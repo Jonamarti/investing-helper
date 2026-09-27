@@ -1,0 +1,8 @@
+node_modules
+dist
+coverage
+.tsbuild
+playwright-report
+test-results
+package-lock.json
+docs/plan.md

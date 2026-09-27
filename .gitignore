@@ -1,0 +1,27 @@
+node_modules/
+dist/
+coverage/
+.tsbuild/
+*.tsbuildinfo
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

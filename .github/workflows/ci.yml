@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    permissions: { contents: read }
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # La version de Node sale de .nvmrc, no de aqui: una sola fuente de
+          # verdad, y el fichero que ya lee el resto del repo.
+          node-version-file: .nvmrc
+          cache: npm
+      # `packageManager` fija la version de npm, y la que viene con el Node de
+      # runners no la cumple. Sin esto, `npm ci` falla el engines check.
+      - run: corepack enable
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:coverage
+      - run: npm run build
+
+  # El job `e2e` entra aqui en la fase de E2E, cuando existan los specs y el
+  # playwright.config.ts.hasta entonces no esta: un `playwright test` sin tests
+  # sale con codigo 1 y dejaria el pipeline rojo sin motivo.
+  #
+  # Cuando se anada, tiene que construir con el MISMO base que produccion:
+  #   VITE_BASE_PATH: /<repo>/
+  # y arrancar `vite preview`, que sirve dist/ con ese prefijo. Si el preview
+  # usa base "/" y el deploy "/repo/", los tests pasan en local y rompen en
+  # GitHub Pages.
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [quality]
+    permissions:
+      # A nivel de job: especificar `permissions` revoca todo lo no listado.
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: corepack enable
+      - run: npm ci
+      - uses: actions/configure-pages@v5
+        id: pages
+      - run: npm run build
+        env:
+          # Renombrar el repo no rompe nada: el base sale de Pages, no de un
+          # literal en el repositorio.
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
