@@ -11,7 +11,7 @@ este documento es la versión legible de esas cinco reglas, no al revés.
 packages/core/src/domain          ← motor, cero dependencias
 packages/core/src/application     ← casos de uso + puertos + DTOs
 apps/web/src/infrastructure       ← adaptadores: localStorage, RNG
-apps/web/src/ui                   ← React (pestaña Comparador; el resto, pendiente)
+apps/web/src/ui                   ← React (Comparador, Escenarios, Deudas, Supuestos; el resto, pendiente)
 ```
 
 | Regla | Desde                                                           | Puede importar                                                                                                                                                                                         |
@@ -19,7 +19,7 @@ apps/web/src/ui                   ← React (pestaña Comparador; el resto, pend
 | 1     | `domain/**`                                                     | solo `domain/**`                                                                                                                                                                                       |
 | 2     | `application/**`                                                | `domain/**` y el resto de `application/**` (sus propios `ports`/`dto`/`usecases`)                                                                                                                      |
 | 3     | `infrastructure/**`                                             | `application/ports`, `domain/model`, `domain/shared` y el resto de `infrastructure/**`; nunca la UI ni el motor (`engine`, `strategies`, `analytics`, `montecarlo`, `amortization`, `taxes`, `params`) |
-| 4     | `ui/**`                                                         | `application/dto` y `domain/shared` (`Money`/`Rate`/`Percent`, que son value objects); nunca `domain/engine\|strategies\|analytics\|montecarlo\|amortization\|taxes\|params`                           |
+| 4     | `ui/**`                                                         | `application/**`, `domain/model`, `domain/params` (el catálogo de `ParamSpec`) y `domain/shared`; nunca el motor: `domain/engine\|strategies\|analytics\|montecarlo\|amortization\|taxes`              |
 | 5     | cualquiera salvo `ui/**`, `app/**`, `main.tsx` y `container.ts` | nunca `ui/**`                                                                                                                                                                                          |
 
 La consecuencia práctica de la regla 1 es que `packages/core/package.json` no
@@ -29,8 +29,14 @@ regla ya se habría roto antes de que `depcruise` lo detecte.
 `domain/model` (`Scenario`, `Loan`, ...) se trata como `domain/shared`: son
 datos planos, sin lógica de motor, y `infrastructure/persistence` necesita el
 tipo `Scenario` para poder guardarlo y cargarlo. Lo que la regla 3 bloquea es
-el motor (`engine`/`strategies`/`analytics`/`montecarlo`/`amortization`/`taxes`/`params`),
+el motor (`engine`/`strategies`/`analytics`/`montecarlo`/`amortization`/`taxes`),
 no cualquier tipo de dato.
+
+`domain/params` (el catálogo de `ParamSpec`) sí está permitido para `ui/**`
+(a diferencia de `infrastructure/**`, donde sigue prohibido): es justo el
+dato que `FieldRenderer` necesita recorrer para pintar el formulario de cada
+estrategia sin conocerla (docs/plan.md, §3.4). No es "el motor": no simula
+nada, solo describe campos.
 
 **Nota de mantenimiento**: `dependency-cruiser` solo detecta lo que consigue
 recorrer. Pasarle un directorio a secas (`depcruise .` o `depcruise src`) se
@@ -109,16 +115,22 @@ randomMonthlyReturn` es el punto de enganche con el motor: si una
   `persistence/localStorageRepo.ts` (biblioteca de escenarios),
   `persistence/jsonFileRepo.ts` (import/export) y `persistence/migrations.ts`
   (encadena migraciones de `Scenario.scenarioVersion`) sobre `domain/model`.
-- **`apps/web/src/ui`**: componentes React, formularios generados desde
-  `ParamSpec` (pendiente: `FieldRenderer`), gráficos y las pestañas de la app.
-  Hechas `features/comparison` (recomendación, ranking, gráfico Recharts,
-  cruces), `features/scenarios` (biblioteca: guardar, cargar, renombrar,
-  duplicar, borrar, exportar/importar JSON) y `features/debts` (alta, edición y
-  borrado de `Loan`, forma fija así que sin `FieldRenderer`), todas sobre
-  `store/scenarioStore.ts` (zustand) e `i18n/` (ES/EN). `scenarioStore.ts` es
-  la única pieza de `ui/**` que toca `infrastructure/persistence` además de
-  `application`: es la frontera entre el resto de la UI y dónde vive el
-  escenario, no algo que cada componente deba saber.
+- **`apps/web/src/ui`**: componentes React, formularios y las pestañas de la
+  app. `components/fields/{FieldRenderer,ParamsForm}.tsx` recorren un
+  `ParamSpec[]` de `domain/params` y pintan el input que toque segun `kind`,
+  sin saber qué estrategia es. Hechas `features/comparison` (recomendación,
+  ranking, gráfico Recharts, cruces), `features/scenarios` (biblioteca:
+  guardar, cargar, renombrar, duplicar, borrar, exportar/importar JSON),
+  `features/debts` (alta, edición y borrado de `Loan`, forma fija así que sin
+  `FieldRenderer`) y `features/assumptions` (inflación, horizonte, ajustes de
+  Monte Carlo, y la lista de estrategias — con `FieldRenderer` para sus
+  parámetros, el checklist de préstamos de una estrategia de amortizar deuda,
+  y `ParamsForm` anidado para los componentes de una cartera mixta), todas
+  sobre `store/scenarioStore.ts` (zustand) e `i18n/` (ES/EN).
+  `scenarioStore.ts` es la única pieza de `ui/**` que toca
+  `infrastructure/persistence` además de `application`: es la frontera entre
+  el resto de la UI y dónde vive el escenario, no algo que cada componente
+  deba saber.
 
 ## Cómo añadir una estrategia nueva
 

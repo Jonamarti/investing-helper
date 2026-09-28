@@ -454,22 +454,23 @@ Detalles que importan:
     todavía. De camino, `.dependency-cruiser.mjs` tenía dos fallos que dejaban
     `lint:deps` sin comprobar casi nada (ver `docs/arquitectura.md`): se han
     corregido y ahora sí cruza los 99 módulos de `packages/core` y `apps/web`.
-14. ▶ **Web/shell**: hecho `App.tsx`, `hashRouter` (`#/<tab>`), `i18n` (ES/EN,
-    con las claves que ya se pintan — no todas las que emite el dominio),
-    `format/money.ts` (dinero y porcentaje) y `store/scenarioStore.ts`
-    (zustand, con `compareStrategies` calculado en cuanto cambia el
-    escenario). Falta `FieldRenderer` y los campos genericos, que hacen falta
-    para las pestañas que editan parametros (Supuestos, Deudas, ...).
-15. ▶ **Web/pestañas**: ✅ **Comparador** (recomendación, ranking, gráfico
-    nominal + poder de compra con Recharts, cruces), ✅ **Escenarios**
-    (biblioteca sobre `LocalStorageScenarioRepo`: guardar, cargar, renombrar,
-    duplicar, borrar, exportar/importar JSON) y ✅ **Deudas** (alta, edición y
-    borrado de préstamos: `kind`, divisa, capital, tipo, plazo, sistema de
-    amortización, mes de inicio, penalización y deducibilidad — forma fija de
-    `Loan`, sin necesitar `FieldRenderer`). Supuestos, Aportaciones y Monte
-    Carlo son un aviso de "todavía no construida": los parámetros de estrategia
-    (`StrategyParams`, una unión discriminada) sí necesitan `FieldRenderer`
-    sobre `ParamSpec`, que es más trabajo que un formulario de forma fija.
+14. ✅ **Web/shell**: `App.tsx`, `hashRouter` (`#/<tab>`), `i18n` (ES/EN, con las
+    claves que ya se pintan — no todas las que emite el dominio),
+    `format/money.ts` + `format/percentInput.ts` (dinero y porcentaje),
+    `store/scenarioStore.ts` (zustand, con `compareStrategies` calculado en
+    cuanto cambia el escenario) y `components/fields/{FieldRenderer,
+    ParamsForm}.tsx`: recorren un `ParamSpec[]` (`domain/params`) y pintan el
+    input segun `kind` (money/percent/number/select/boolean/month/currency),
+    tal como preveía este mismo documento en §3.4.
+15. ▶ **Web/pestañas**: ✅ **Comparador**, ✅ **Escenarios** (biblioteca sobre
+    `LocalStorageScenarioRepo`: guardar, cargar, renombrar, duplicar, borrar,
+    exportar/importar JSON), ✅ **Deudas** (alta, edición y borrado de
+    préstamos, forma fija de `Loan`) y ✅ **Supuestos** (inflación, horizonte,
+    ajustes de Monte Carlo, y la lista de estrategias a comparar — añadir,
+    quitar y editar cada una con `FieldRenderer`, incluida la lista de
+    préstamos de una estrategia de amortizar deuda y los componentes de una
+    cartera mixta, anidando `ParamsForm` una vez más). Aportaciones y Monte
+    Carlo siguen siendo un aviso de "todavía no construida".
 16. **Web/rendimiento**: `workerRunner` y `simulate.worker.ts` con fallback
     inline. Hoy `compareStrategies` corre siempre en el hilo principal: para
     el tamaño de escenario actual es instantáneo, así que esto es una
@@ -481,10 +482,10 @@ Detalles que importan:
 18. ✅ **Deploy**: repo público, Settings → Pages → Source: GitHub Actions
     activado. El job `deploy` corre en cada push a `main`.
 
-Los pasos 1–13, 17 y 18 ya están sobre `main`, y los pasos 14 y 15 tienen tres
-pestañas (Comparador, Escenarios y Deudas) funcionando de verdad. El resto
-avisa honestamente que no está construido todavía, en vez de fingirlo. Este
-documento se actualiza según avanza el resto.
+Los pasos 1–14, 17 y 18 ya están sobre `main`, y el paso 15 tiene cuatro
+pestañas (Comparador, Escenarios, Deudas y Supuestos) funcionando de verdad.
+El resto avisa honestamente que no está construido todavía, en vez de
+fingirlo. Este documento se actualiza según avanza el resto.
 
 ---
 

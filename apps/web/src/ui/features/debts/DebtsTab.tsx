@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { AmortizationSystem, Loan, LoanKind } from '@investing-helper/core/domain/model'
 import { supportedCurrencyCodes } from '@investing-helper/core/domain/shared'
+import { fromPercent, toPercent } from '../../format/percentInput'
 import { useTranslation } from '../../i18n'
 import { useScenarioStore } from '../../store/scenarioStore'
 
@@ -15,20 +16,6 @@ const INPUT = 'w-full rounded-md border border-slate-300 px-2 py-1 text-sm'
 
 function updateLoan(loans: readonly Loan[], id: string, patch: Partial<Loan>): Loan[] {
   return loans.map((loan) => (loan.id === id ? { ...loan, ...patch } : loan))
-}
-
-/**
- * Fraccion a puntos porcentuales para mostrar en un input, redondeado a 4
- * decimales: `0.041 * 100` es `4.1000000000000005` en coma flotante, y el
- * usuario no ha tocado nada.
- */
-function toPercent(rate: number): number {
-  return Math.round(rate * 1_000_000) / 10_000
-}
-
-/** El inverso de `toPercent`, para volver a guardar la fraccion. */
-function fromPercent(percent: number): number {
-  return percent / 100
 }
 
 function removeLoan(loans: readonly Loan[], id: string): Loan[] {

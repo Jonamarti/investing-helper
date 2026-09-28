@@ -15,6 +15,9 @@ export default defineConfig({
       '@investing-helper/core/domain/model': fileURLToPath(
         new URL('../../packages/core/src/domain/model/index.ts', import.meta.url),
       ),
+      '@investing-helper/core/domain/params': fileURLToPath(
+        new URL('../../packages/core/src/domain/params/index.ts', import.meta.url),
+      ),
       '@investing-helper/core/domain/shared': fileURLToPath(
         new URL('../../packages/core/src/domain/shared/index.ts', import.meta.url),
       ),

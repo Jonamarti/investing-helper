@@ -9,6 +9,7 @@
     "./application": "./src/application/index.ts",
     "./application/ports": "./src/application/ports/index.ts",
     "./domain/model": "./src/domain/model/index.ts",
+    "./domain/params": "./src/domain/params/index.ts",
     "./domain/shared": "./src/domain/shared/index.ts"
   },
   "types": "./src/index.ts",

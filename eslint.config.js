@@ -24,7 +24,11 @@ const WEB = 'apps/web/src'
  */
 const CORE_PKG = '@investing-helper/core'
 
-/** Especificadores que ui/** tiene prohibido importar. Refuerza la regla 4 de docs/arquitectura.md. */
+/**
+ * Especificadores que ui/** tiene prohibido importar. Refuerza la regla 4 de
+ * docs/arquitectura.md. `domain/params` no esta aqui a proposito: el catalogo
+ * de `ParamSpec` esta hecho para que la UI lo recorra (docs/plan.md §3.4).
+ */
 const FORBIDDEN_IN_UI = [
   CORE_PKG,
   `${CORE_PKG}/domain/engine`,
@@ -33,7 +37,6 @@ const FORBIDDEN_IN_UI = [
   `${CORE_PKG}/domain/montecarlo`,
   `${CORE_PKG}/domain/amortization`,
   `${CORE_PKG}/domain/taxes`,
-  `${CORE_PKG}/domain/params`,
 ]
 
 /** Especificadores que infrastructure/** tiene prohibido importar. Refuerza la regla 3. */

@@ -32,10 +32,10 @@ describe('App', () => {
     render(<App />)
     await screen.findByText('Comparador')
 
-    screen.getByRole('button', { name: 'Supuestos' }).click()
+    screen.getByRole('button', { name: 'Aportaciones' }).click()
 
     expect(await screen.findByText(/todavía no está construida/)).toBeTruthy()
-    expect(window.location.hash).toBe('#/assumptions')
+    expect(window.location.hash).toBe('#/contributions')
   })
 
   it('la pestaña de Escenarios muestra el escenario activo y su biblioteca', async () => {

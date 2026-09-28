@@ -54,12 +54,14 @@ export default {
     {
       name: 'ui-uses-dtos-not-engine',
       comment:
-        'Regla 4: ui/** usa application/dto y domain/shared (Money/Rate/Percent). ' +
-        'Nunca domain/engine|strategies|analytics|montecarlo|amortization|taxes.',
+        'Regla 4: ui/** usa application/**, domain/shared, domain/model y ' +
+        'domain/params (el catalogo declarativo de ParamSpec, hecho para que la ' +
+        'UI lo recorra: ver docs/plan.md §3.4). Nunca el motor: ' +
+        'domain/engine|strategies|analytics|montecarlo|amortization|taxes.',
       severity: 'error',
       from: { path: LAYER.ui },
       to: {
-        path: `^${LAYER.domain}/(engine|strategies|analytics|montecarlo|amortization|taxes|params)`,
+        path: `^${LAYER.domain}/(engine|strategies|analytics|montecarlo|amortization|taxes)`,
       },
     },
     {

@@ -1,3 +1,4 @@
+import { AssumptionsTab } from '../ui/features/assumptions/AssumptionsTab'
 import { ComparisonTab } from '../ui/features/comparison/ComparisonTab'
 import { DebtsTab } from '../ui/features/debts/DebtsTab'
 import { ScenariosTab } from '../ui/features/scenarios/ScenariosTab'
@@ -28,6 +29,7 @@ function TabContent({ tab }: { readonly tab: string }) {
     case 'debts':
       return <DebtsTab />
     case 'assumptions':
+      return <AssumptionsTab />
     case 'contributions':
     case 'montecarlo':
       return <ComingSoon />

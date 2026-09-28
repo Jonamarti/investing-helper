@@ -11,6 +11,7 @@
         "../../packages/core/src/application/ports/index.ts"
       ],
       "@investing-helper/core/domain/model": ["../../packages/core/src/domain/model/index.ts"],
+      "@investing-helper/core/domain/params": ["../../packages/core/src/domain/params/index.ts"],
       "@investing-helper/core/domain/shared": ["../../packages/core/src/domain/shared/index.ts"],
       "@/*": ["./src/*"]
     }
