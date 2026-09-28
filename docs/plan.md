@@ -409,8 +409,8 @@ el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
 8. ✅ **Core/strategies**: cash, bonds, equity, mixed, debtPaydown, con tests de
    conservación de capital y de rendimiento.
 9. ✅ **Core/taxes**: motor y presets.
-10. ▶ **Core/analytics**: real, irr, metrics, ranking, crossovers, recommendation.
-11. **Core/montecarlo**: sampler, aggregate, y test de reproducibilidad con semilla.
+10. ✅ **Core/analytics**: real, irr, metrics, ranking, crossovers, recommendation.
+11. ▶ **Core/montecarlo**: sampler, aggregate, y test de reproducibilidad con semilla.
 12. **Core/application**: `ports`, `dto`, `usecases` + validación + tests
     property-based con fast-check, golden files, y cobertura ≥ 90 % en core.
 13. **Web/infra**: `mulberry32`, repos de localStorage (biblioteca de escenarios
@@ -425,7 +425,7 @@ el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
 18. **Deploy manual**: hacer el repo público y activar Settings → Pages →
     Source: GitHub Actions (ver README).
 
-Los pasos 1–9 ya están sobre `main`; este documento se actualiza según avanza
+Los pasos 1–10 ya están sobre `main`; este documento se actualiza según avanza
 el resto.
 
 ---

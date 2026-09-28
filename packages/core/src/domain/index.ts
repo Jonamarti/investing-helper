@@ -1,4 +1,5 @@
 export * from './amortization'
+export * from './analytics'
 export * from './engine'
 export * from './model'
 export * from './params'
