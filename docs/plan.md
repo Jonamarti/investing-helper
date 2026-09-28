@@ -423,10 +423,12 @@ el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
 11. ✅ **Core/montecarlo**: sampler (GBM), aggregate (percentiles, probabilidades)
     y `EngineContext.month.randomMonthlyReturn`, que la renta variable usa en
     vez de `expectedReturn` cuando la simulación trae una trayectoria.
-12. ▶ **Core/application**: `ports`, `dto`, `usecases` + validación + tests
-    property-based con fast-check, golden files, y cobertura ≥ 90 % en core.
-13. **Web/infra**: `mulberry32`, repos de localStorage (biblioteca de escenarios
-    + import/export), `manualFxProvider`, `container.ts`.
+12. ✅ **Core/application**: `ports` (`IRandomSource`), `dto` (comparación y
+    Monte Carlo) y `usecases` (`compareStrategies`, `runMonteCarlo`,
+    `validateScenario`), con tests. Faltan property-based con fast-check para
+    esta capa y golden files; cobertura de `packages/core` ≥ 90 % ya cumplida.
+13. ▶ **Web/infra**: `mulberry32`, repos de localStorage (biblioteca de
+    escenarios + import/export), `manualFxProvider`, `container.ts`.
 14. **Web/shell**: App, hash router (`#/<tab>`), i18n, formateo, stores,
     `FieldRenderer` y campos.
 15. **Web/pestañas**: Supuestos → Deudas → Aportaciones → **Comparador** →
@@ -434,11 +436,11 @@ el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
 16. **Web/rendimiento**: `workerRunner` y `simulate.worker.ts` con fallback inline.
 17. **E2E**: specs de Playwright (smoke + biblioteca de escenarios) y el job
     `e2e` en la CI.
-18. **Deploy manual**: hacer el repo público y activar Settings → Pages →
-    Source: GitHub Actions (ver README).
+18. ✅ **Deploy**: repo público, Settings → Pages → Source: GitHub Actions
+    activado. El job `deploy` corre en cada push a `main`.
 
-Los pasos 1–11 ya están sobre `main`; este documento se actualiza según avanza
-el resto.
+Los pasos 1–12 y el 18 ya están sobre `main`; este documento se actualiza según
+avanza el resto.
 
 ---
 

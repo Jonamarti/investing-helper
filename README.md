@@ -5,20 +5,21 @@ deuda, invertir en bonos, invertir en renta variable o dejar el dinero en
 cuenta corriente, ajustando por inflación, crecimiento del sueldo y dinero
 libre mensual.
 
-**URL pública**: `https://jonamarti.github.io/investing-helper/` — todavía no
-está activa porque el repositorio es privado. Se activa en cuanto el
-repositorio se haga público y se configure Settings → Pages → Source:
-**GitHub Actions** (ver [Despliegue](#despliegue)).
+**URL pública**: <https://jonamarti.github.io/investing-helper/>. Por ahora
+muestra solo el marcador de humo de la Fase 0 (confirma que React, Tailwind y
+el motor se empaquetan bien en el navegador): la interfaz real todavía no
+existe, ver [Estado actual](#estado-actual).
 
 ## Estado actual
 
-El motor de simulación (`packages/core`) tiene el modelo de dominio, la
-amortización, el simulador, las cinco estrategias, el motor fiscal, la
-analítica (TIR, ranking, recomendación) y Monte Carlo (GBM, percentiles)
-implementados y probados. Falta la capa `application` (casos de uso, DTOs) que
-los conecta con la UI. La aplicación web (`apps/web`) todavía es solo el
-andamiaje: falta toda la interfaz real. El detalle de qué hay hecho está en
-[docs/plan.md, §5](docs/plan.md#5-orden-de-implementación).
+El motor de simulación (`packages/core`) está completo y probado: modelo de
+dominio, amortización, simulador, las cinco estrategias, motor fiscal,
+analítica (TIR, ranking, recomendación), Monte Carlo (GBM, percentiles) y la
+capa `application` (casos de uso `compareStrategies`/`runMonteCarlo`/
+`validateScenario`, DTOs, puertos) que lo deja listo para que la UI lo consuma.
+La aplicación web (`apps/web`) todavía es solo el andamiaje de la Fase 0: falta
+la infraestructura (`localStorage`, RNG) y toda la interfaz real. El detalle de
+qué hay hecho está en [docs/plan.md, §5](docs/plan.md#5-orden-de-implementación).
 
 ## Stack
 
@@ -74,16 +75,9 @@ tests, build) en cada push y pull request, y `deploy` — que solo corre en
 El `base` de Vite sale de `VITE_BASE_PATH`, que pone `configure-pages` a partir
 del nombre real del repositorio: renombrar el repo no rompe el build.
 
-Pasos manuales pendientes en GitHub, una sola vez:
-
-1. Settings → General → Danger Zone → cambiar la visibilidad a **Public**
-   (GitHub Pages con Actions no está disponible en repos privados de plan
-   gratuito).
-2. Settings → Pages → Source: **GitHub Actions**.
-
-Hasta entonces, el job `deploy` fallará (o no se disparará) aunque `quality`
-esté en verde, y no hay forma de ver el estado de la CI desde fuera porque
-`api.github.com` devuelve 404 para un repo privado sin autenticación.
+El repositorio ya es público y Settings → Pages → Source está en **GitHub
+Actions**: el job `deploy` corre en cada push a `main` sin pasos manuales
+adicionales.
 
 ## Limitaciones del modelo
 

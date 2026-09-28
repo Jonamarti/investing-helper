@@ -9,9 +9,9 @@ este documento es la versión legible de esas cinco reglas, no al revés.
 
 ```
 packages/core/src/domain          ← motor, cero dependencias
-packages/core/src/application     ← casos de uso + puertos (pendiente, paso 12 de docs/plan.md)
-apps/web/src/infrastructure       ← adaptadores: localStorage, RNG, tipos de cambio
-apps/web/src/ui                   ← React
+packages/core/src/application     ← casos de uso + puertos + DTOs
+apps/web/src/infrastructure       ← adaptadores: localStorage, RNG, tipos de cambio (pendiente, paso 13)
+apps/web/src/ui                   ← React (pendiente, paso 14 en adelante)
 ```
 
 | Regla | Desde                                                           | Puede importar                                                                                                                                                               |
@@ -60,9 +60,16 @@ regla ya se habría roto antes de que `depcruise` lo detecte.
 randomMonthlyReturn` es el punto de enganche con el motor: si una
   simulación lo trae, la renta variable lo usa en vez de `expectedReturn` ese
   mes; el resto de estrategias lo ignora.
-- **`application`** (pendiente): puertos (`IRandomSource`, `IDateSource`), DTOs
-  hacia la UI y los casos de uso (`compareStrategies`, `runMonteCarlo`,
-  `validateScenario`) que orquestan el dominio sin añadirle reglas nuevas.
+- **`application`**: puertos (`IRandomSource`; `IDateSource` queda para cuando
+  haga falta), DTOs hacia la UI (`application/dto`, que no dependen de
+  `domain/engine`/`analytics`/`montecarlo` aunque hoy coincidan campo a campo) y
+  los casos de uso que orquestan el dominio sin añadirle reglas nuevas:
+  `compareStrategies` (simula, calcula métricas/ranking/cruces/recomendación y
+  lo empaqueta todo en DTOs), `runMonteCarlo` (una estrategia `equity`, `paths`
+  trayectorias GBM vía `IRandomSource`, agregadas por percentil) y
+  `validateScenario` (valida cada estrategia contra su catálogo más las reglas
+  que solo tienen sentido mirando el escenario entero: préstamos referenciados,
+  ids duplicados, sueldo no negativo).
 - **`apps/web/src/infrastructure`**: implementaciones concretas de los puertos
   — repositorios de `localStorage`, generador de números aleatorios,
   proveedor de tipos de cambio manuales.
