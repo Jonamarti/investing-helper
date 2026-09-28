@@ -17,11 +17,34 @@ corriente, ajustando por inflación, crecimiento del sueldo y dinero libre mensu
 | Rentabilidad | Determinista + Monte Carlo opcional (con semilla) |
 | Aportaciones | Automáticas (capital inicial + % del sueldo libre + crecimiento) **y** overrides manuales por periodo |
 | Impuestos | Configurables por estrategia, 0 % por defecto |
-| Persistencia | localStorage + import/export JSON + URL compartible (deflate + base64url) |
+| Persistencia | localStorage + import/export JSON, sin URL compartible |
 | Moneda | Multi-moneda con tipos manuales + i18n ES/EN |
 | Gráficos | Recharts 3.10+ |
 | Tests | Unitarios + property-based (fast-check) + golden files + E2E Playwright |
 | CI | Actions: `quality` ‖ `e2e` → `deploy` a GitHub Pages |
+
+### 0.1 Persistencia
+
+Sin URL compartible: el router de hash solo guarda la pestaña activa
+(`#/<tab>`, sin estado del escenario en la URL). Todo el estado vive en
+`localStorage`, bajo estas claves:
+
+| Clave | Contenido |
+|---|---|
+| `investing-helper:v1:index` | Lista de escenarios guardados: `{ id, nameKey o nombre, updatedAt }[]` |
+| `investing-helper:v1:scenario:<id>` | El `Scenario` completo de ese id, tal cual lo consume el motor |
+| `investing-helper:v1:settings` | Preferencias de la app: idioma, tema, última pestaña |
+
+La **biblioteca de escenarios** (pestaña Escenarios) opera sobre el índice:
+listar, cargar (lee `scenario:<id>` y lo pasa al motor), renombrar (solo toca el
+índice), duplicar (nuevo `id`, mismo contenido, entrada nueva en el índice) y
+borrar (quita la entrada del índice y su clave `scenario:<id>`).
+
+**Import/export** es JSON plano de un `Scenario`, con `scenarioVersion`
+(`SCENARIO_VERSION` en `model/scenario.ts`) como parte del payload. Al importar,
+si la versión es menor que la que entiende el código, se encadenan las
+migraciones conocidas antes de aceptarlo; si es mayor, se rechaza en vez de
+adivinar el formato.
 
 ---
 
@@ -67,7 +90,7 @@ demás tiene que pasar por los DTOs de `application/dto`.
 investing-helper/
 ├── package.json                  # workspaces, scripts raíz
 ├── .nvmrc                        # 24
-├── .dependency-cruiser.js        # reglas hexagonales
+├── .dependency-cruiser.mjs       # reglas hexagonales (ver docs/arquitectura.md)
 ├── eslint.config.js              # flat config + boundaries
 ├── .prettierrc.json
 ├── .gitignore
@@ -75,7 +98,7 @@ investing-helper/
 │
 ├── .github/
 │   ├── workflows/
-│   │   └── ci.yml                # quality ‖ e2e → deploy
+│   │   └── ci.yml                # quality → deploy (e2e pendiente, ver §4)
 │   └── dependabot.yml            # npm + github-actions, semanal
 │
 ├── packages/core/                # ── MOTOR, sin dependencias ──
@@ -84,90 +107,78 @@ investing-helper/
 │   ├── vitest.config.ts
 │   └── src/
 │       ├── index.ts              # única puerta pública
-│       ├── shared/
-│       │   ├── money.ts          # aritmética con redondeo al exponente de la divisa
-│       │   ├── rate.ts           # anual↔mensual, nominal↔efectivo, real
-│       │   ├── period.ts         # índice de mes ↔ {año, mes}, addMonths
-│       │   ├── currency.ts       # exponent/locale por ISO-4217
-│       │   ├── result.ts         # Result<T, E> sin excepciones
-│       │   └── assert.ts
-│       ├── model/
-│       │   ├── scenario.ts       # agregado raíz
-│       │   ├── assumptions.ts    # inflación, crecimiento nómina, MC, impuestos
-│       │   ├── salary.ts         # sueldo neto, costes fijos, 12/14 pagas
-│       │   ├── contributionPlan.ts
-│       │   ├── loan.ts           # Loan + LoanType + AmortizationSystem
-│       │   ├── strategy.ts       # union de StrategyParams + StrategyType
-│       │   └── exchangeRates.ts
-│       ├── params/
-│       │   ├── spec.ts           # ParamSpec, FieldKind, ValidationRule
-│       │   ├── catalog.ts        # registry: estrategia → paramSpec
-│       │   └── specs/{cash,bonds,equity,mixed,debt}.spec.ts
-│       ├── engine/
-│       │   ├── contracts.ts      # StrategyEngine, StepContext, AssetState
-│       │   ├── registry.ts       # Map<StrategyType, StrategyEngine>
-│       │   ├── simulator.ts      # bucle mensual de fases
-│       │   ├── phases/{contribute,debt,growth,tax,valuation}.ts
-│       │   └── state.ts          # MonthState
-│       ├── strategies/
-│       │   ├── cash.ts
-│       │   ├── bonds.ts
-│       │   ├── equity.ts
-│       │   ├── mixed.ts          # compone sub-activos + rebalanceo
-│       │   └── debtPaydown.ts    # avalanche/snowball, plazo vs cuota
-│       ├── amortization/
-│       │   ├── french.ts         # A = P·i / (1 − (1+i)^−n)
-│       │   ├── constant.ts
-│       │   ├── schedule.ts       # tabla + Flynn/Sherwood
-│       │   └── earlyExit.ts      # penalización por cancelación anticipada
-│       ├── taxes/
-│       │   ├── taxEngine.ts      # retenciones, relief de interés de hipoteca
-│       │   └── presets.ts
-│       ├── analytics/
-│       │   ├── real.ts           # deflatación y poder de compra
-│       │   ├── irr.ts            # Newton + bisección, mensual → anual
-│       │   ├── metrics.ts        # netGain, CAGR, breakeven
-│       │   ├── ranking.ts
-│       │   ├── crossovers.ts     # primer mes donde A supera a B
-│       │   └── recommendation.ts # motor de reglas → claves i18n
-│       ├── montecarlo/
-│       │   ├── sampler.ts        # GBM lognormal, Z
-│       │   └── aggregate.ts      # p5/p25/p50/p75/p95, P(gana), P(>inflación)
-│       ├── ports/
-│       │   ├── random.ts         # IRandomSource
-│       │   └── clock.ts          # IDateSource
-│       └── usecases/             # superficie pública
-│           ├── compareStrategies.ts
-│           ├── simulateStrategy.ts
-│           ├── buildAmortizationSchedule.ts
-│           ├── rankStrategies.ts
-│           ├── runMonteCarlo.ts
-│           └── validateScenario.ts
+│       └── domain/                # CERO deps, todo lo de abajo es solo domain/**
+│           ├── shared/
+│           │   ├── money.ts          # aritmética con redondeo al exponente de la divisa
+│           │   ├── rate.ts           # anual↔mensual, nominal↔efectivo, real
+│           │   ├── period.ts         # índice de mes ↔ {año, mes}, addMonths
+│           │   ├── currency.ts       # exponent/locale por ISO-4217
+│           │   ├── result.ts         # Result<T, E> sin excepciones
+│           │   └── assert.ts
+│           ├── model/
+│           │   ├── scenario.ts       # agregado raíz, SCENARIO_VERSION
+│           │   ├── assumptions.ts    # inflación, horizonte, Monte Carlo
+│           │   ├── salary.ts         # sueldo neto, costes fijos, 12/14 pagas
+│           │   ├── contributionPlan.ts
+│           │   ├── loan.ts           # Loan + LoanKind + AmortizationSystem
+│           │   ├── strategy.ts       # union de StrategyParams + StrategyType
+│           │   └── exchangeRates.ts
+│           ├── params/
+│           │   ├── spec.ts           # ParamSpec, FieldKind, ValidationRule
+│           │   ├── catalog.ts        # registry: estrategia → paramSpec
+│           │   └── validate.ts
+│           ├── amortization/
+│           │   ├── french.ts         # A = P·i / (1 − (1+i)^−n)
+│           │   ├── constant.ts
+│           │   ├── schedule.ts       # tabla de amortización
+│           │   └── earlyExit.ts      # penalización por cancelación anticipada
+│           ├── engine/
+│           │   ├── contracts.ts      # StrategyEngine, EngineContext, EngineState
+│           │   ├── registry.ts       # Map<StrategyType, StrategyEngine>
+│           │   └── simulator.ts      # bucle mensual: contribución→cierre→año→rebalanceo
+│           ├── strategies/
+│           │   ├── cash.ts
+│           │   ├── bonds.ts
+│           │   ├── equity.ts
+│           │   ├── mixed.ts          # compone sub-activos + rebalanceo
+│           │   └── debtPaydown.ts    # avalanche/snowball, plazo vs cuota
+│           ├── taxes/
+│           │   ├── taxEngine.ts      # retenciones, relief de interés de hipoteca
+│           │   └── presets.ts
+│           ├── analytics/            # ver §3.7, paso 10 del plan
+│           │   ├── real.ts           # deflatación y poder de compra
+│           │   ├── irr.ts            # Newton + bisección, mensual → anual
+│           │   ├── metrics.ts        # netGain, TIR, breakeven
+│           │   ├── ranking.ts
+│           │   ├── crossovers.ts     # primer mes donde A supera a B
+│           │   └── recommendation.ts # motor de reglas → claves i18n
+│           └── montecarlo/           # sampler GBM + agregados p5..p95 (paso 11)
+│       └── application/              # siguiente tanda (paso 12 en adelante)
+│           ├── ports/                 # IRandomSource, IDateSource
+│           ├── dto/                   # lo único que ve la UI
+│           └── usecases/              # compareStrategies, runMonteCarlo, ...
 │   └── test/
-│       ├── unit/
-│       ├── property/             # fast-check
-│       └── fixtures/golden/      # cuadros de amortización validados a mano
+│       ├── unit/                 # espejo de src/domain
+│       └── property/             # fast-check
 │
 └── apps/web/                     # ── PRESENTACIÓN ──
     ├── package.json
-    ├── vite.config.ts            # base = base_path de GitHub Pages
-    ├── playwright.config.ts
+    ├── vite.config.ts            # base = VITE_BASE_PATH (GitHub Pages)
+    ├── playwright.config.ts      # pendiente, ver §4
     ├── e2e/
     │   ├── smoke.spec.ts         # carga, mover un slider, la tabla se actualiza
-    │   ├── share-url.spec.ts     # round-trip del enlace compartible
-    │   └── persistence.spec.ts   # recálculo guardado en localStorage
+    │   └── scenario-library.spec.ts  # guardar/cargar/duplicar/borrar en localStorage
     └── src/
         ├── main.tsx              # único punto que conoce ui + infra
         ├── container.ts          # DI manual: registry + repos + runner
         ├── app/
         │   ├── App.tsx
-        │   ├── hashRouter.ts     # #/tab/comparison?s=<estado>  (sin 404 en Pages)
+        │   ├── hashRouter.ts     # #/<tab>, sin estado en la URL (sin 404 en Pages)
         │   ├── compositionRoot.tsx
         │   └── providers.tsx     # i18n, query client, tema
         ├── infrastructure/
         │   ├── rng/mulberry32.ts
         │   ├── persistence/{localStorageRepo,jsonFileRepo,migrations}.ts
-        │   ├── codec/shareUrlCodec.ts        # deflate-raw + base64url
         │   ├── rates/manualFxProvider.ts
         │   ├── clock/systemDateSource.ts
         │   └── runner/{SimulationRunner.ts,workerRunner.ts,inlineRunner.ts,simulate.worker.ts}
@@ -188,9 +199,9 @@ investing-helper/
             │   │   └── RecommendationPanel.tsx
             │   ├── debts/        # DebtTab, LoanForm, AmortizationTable
             │   ├── contributions/# ContributionsTab, OverrideEditor
-            │   ├── assumptions/  # AssumptionsTab
+            │   ├── assumptions/  # AssumptionsTab (incluye la semilla de Monte Carlo)
             │   ├── montecarlo/   # MonteCarloTab, PercentileFanChart
-            │   └── scenarios/    # ScenariosTab, ShareBar, ImportExport
+            │   └── scenarios/    # ScenariosTab: biblioteca + ImportExport
             ├── hooks/            # useScenario, useComparison, useDebounced
             ├── store/            # zustand: scenarioStore, uiStore, settingsStore
             ├── format/           # formateo con Intl (moneda, %, fecha)
@@ -295,14 +306,17 @@ ejemplo `[7, 12]` para 14 pagas). Los **overrides** son un
 
 `runMonteCarlo(scenario, strategy, { paths: 1000, seed })` devuelve
 `{ p5, p25, p50, p75, p95, probBeatsBest, probBeatsInflation, finalValues[] }`.
-**La semilla va en la URL**, así que los resultados son reproducibles al
-compartir. Se ejecuta en un Web Worker, con fallback síncrono.
+**La semilla es visible y editable** en la pestaña de Supuestos
+(`MonteCarloSettings.seed`) y se guarda con el escenario, no en la URL: con la
+misma semilla y los mismos parámetros, el resultado es idéntico. Se ejecuta en
+un Web Worker, con fallback síncrono.
 
 ---
 
 ## 4. CI / CD (`.github/workflows/ci.yml`)
 
-Un solo workflow, tres jobs. El deploy **solo** si todo lo anterior pasó.
+Estado real: dos jobs, `quality` y `deploy`. El job `e2e` todavía no existe (ver
+más abajo por qué).
 
 ```yaml
 name: CI
@@ -315,49 +329,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality:                       # lint + tipos + unit, rápido
+  quality:
     permissions: { contents: read }
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4      # node 24, cache: npm
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc      # una sola fuente de verdad para la version
+          cache: npm
+      - run: corepack enable             # fija la version de npm (packageManager)
       - run: npm ci
-      - run: npm run lint               # eslint + prettier + dependency-cruiser
-      - run: npm run typecheck          # tsc -b --noEmit
-      - run: npm run test -- --coverage # vitest en packages/core
-      - run: npm run build              # incluye apps/web
-
-  e2e:                           # Playwright, se solapa con quality
-    permissions: { contents: read }
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4      # node 24, cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:coverage
       - run: npm run build
-      - run: npm run test:e2e            # webServer: vite preview
-      - uses: actions/upload-artifact@v4
-        if: failure()                    # adjunta traces y screenshots
-        with: { name: playwright-report, path: apps/web/playwright-report }
 
-  deploy:                        # gate: main + push + todo verde
+  deploy:                        # gate: main + push + quality en verde
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [quality, e2e]
+    needs: [quality]
     permissions:
-      pages: write                # ← a nivel de job, mínimo privilegio
+      pages: write                # ← a nivel de job, minimo privilegio
       id-token: write
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: corepack enable
       - run: npm ci
       - uses: actions/configure-pages@v5
         id: pages
       - run: npm run build
         env:
           VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}  # rename-proof
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v3
         with: { path: apps/web/dist }
       - id: deployment
         uses: actions/deploy-pages@v4
@@ -372,39 +383,50 @@ Detalles que importan:
   todo lo que no esté listado.
 - Tras el merge: Settings → Pages → Source: **GitHub Actions**.
 - `dependabot.yml`: npm y github-actions, semanal.
-- Alternativa si prefieres separar el deploy: `workflow_run` disparado al
-  completar `CI` con `conclusion == 'success'`.
+
+**`e2e` pendiente**: un `playwright test` sin specs ni `playwright.config.ts`
+sale con código 1 y dejaría el pipeline rojo sin motivo, así que el job se añade
+junto con los primeros specs (paso 17). Cuando se añada, tiene que construir con
+el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
+`vite preview` sobre ese build: si el preview usa base `/` y el deploy
+`/<repo>/`, los tests pasan en local y rompen en GitHub Pages.
 
 ---
 
 ## 5. Orden de implementación
 
-1. **Scaffold**: workspaces, tsconfig con project references, eslint + prettier,
-   `dependency-cruiser.js` con las 5 reglas, `.nvmrc`, `git init`.
-2. **CI skeleton**: `ci.yml` con solo el job `quality` (lint y typecheck vacíos)
-   para validar el plumbing.
-3. **Core/shared**: `money`, `rate`, `period`, `currency`, `result` + tests.
-4. **Core/model**: `Loan`, `Scenario`, `Assumptions`, `Salary`,
+✅ hecho · ▶ en curso · el resto, pendiente.
+
+1. ✅ **Scaffold**: workspaces, tsconfig con project references, eslint +
+   prettier, `.dependency-cruiser.mjs` con las 5 reglas, `.nvmrc`, `git init`.
+2. ✅ **CI skeleton**: `ci.yml` con los jobs `quality` y `deploy`.
+3. ✅ **Core/shared**: `money`, `rate`, `period`, `currency`, `result` + tests.
+4. ✅ **Core/model**: `Loan`, `Scenario`, `Assumptions`, `Salary`,
    `ContributionPlan`, `StrategyParams`.
-5. **Core/amortization**: francés, constante, schedule, salida anticipada, más un
-   golden file de una hipoteca real.
-6. **Core/params**: `ParamSpec` y el catálogo de specs de las 5 estrategias.
-7. **Core/engine**: contratos, registry, simulador con las 6 fases.
-8. **Core/strategies**: cash, bonds, equity, mixed, debtPaydown, más tests de
+5. ✅ **Core/amortization**: francés, constante, schedule, salida anticipada.
+6. ✅ **Core/params**: `ParamSpec` y el catálogo de specs de las 5 estrategias.
+7. ✅ **Core/engine**: contratos, registry, simulador con sus fases.
+8. ✅ **Core/strategies**: cash, bonds, equity, mixed, debtPaydown, con tests de
    conservación de capital y de rendimiento.
-9. **Core/taxes**: motor y presets.
-10. **Core/analytics**: real, irr, metrics, ranking, crossovers, recommendation.
+9. ✅ **Core/taxes**: motor y presets.
+10. ▶ **Core/analytics**: real, irr, metrics, ranking, crossovers, recommendation.
 11. **Core/montecarlo**: sampler, aggregate, y test de reproducibilidad con semilla.
-12. **Core/usecases** + validación + **tests**: property-based con fast-check,
-    golden files, y cobertura ≥ 90 % en core.
-13. **Web/infra**: `mulberry32`, repos de localStorage, `shareUrlCodec`
-    (deflate-raw + base64url), `manualFxProvider`, `container.ts`.
-14. **Web/shell**: App, hash router, i18n, formateo, stores, `FieldRenderer` y campos.
+12. **Core/application**: `ports`, `dto`, `usecases` + validación + tests
+    property-based con fast-check, golden files, y cobertura ≥ 90 % en core.
+13. **Web/infra**: `mulberry32`, repos de localStorage (biblioteca de escenarios
+    + import/export), `manualFxProvider`, `container.ts`.
+14. **Web/shell**: App, hash router (`#/<tab>`), i18n, formateo, stores,
+    `FieldRenderer` y campos.
 15. **Web/pestañas**: Supuestos → Deudas → Aportaciones → **Comparador** →
     Monte Carlo → Escenarios.
 16. **Web/rendimiento**: `workerRunner` y `simulate.worker.ts` con fallback inline.
-17. **E2E**: 3 specs de Playwright.
-18. **Deploy**: job `deploy`, `.nojekyll`, README y primer push.
+17. **E2E**: specs de Playwright (smoke + biblioteca de escenarios) y el job
+    `e2e` en la CI.
+18. **Deploy manual**: hacer el repo público y activar Settings → Pages →
+    Source: GitHub Actions (ver README).
+
+Los pasos 1–9 ya están sobre `main`; este documento se actualiza según avanza
+el resto.
 
 ---
 
@@ -431,7 +453,8 @@ modelo.
 
 ## 7. Pendientes de confirmar
 
-- La carpeta actual se llama `investing_helper` (guion bajo). Conviene renombrarla
-  a `investing-helper` para que la URL de GitHub Pages quede limpia.
+- ~~Renombrar la carpeta `investing_helper` a `investing-helper`~~: no hace
+  falta. La URL de GitHub Pages depende del **nombre del repositorio** en
+  GitHub, no del directorio local, y el repo ya se llama `investing-helper`.
 - En local hay Node 23.7 (odd, no-LTS). La CI usará Node 24; para desarrollo
   local conviene instalar la 24 LTS.

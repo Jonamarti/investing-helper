@@ -5,8 +5,8 @@ export interface MonteCarloSettings {
   /** Numero de trayectorias. 1000 es un buen compromiso velocidad/utilidad. */
   readonly paths: number
   /**
-   * Semilla del generador. Va en la URL compartida: con la misma semilla y los
-   * mismos parametros, el resultado es identico.
+   * Semilla del generador. Se guarda con el escenario: con la misma semilla y
+   * los mismos parametros, el resultado es identico.
    */
   readonly seed: number
   /** Volatilidad anualizada del underlying de renta variable. */
