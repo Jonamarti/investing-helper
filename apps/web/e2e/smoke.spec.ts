@@ -14,14 +14,24 @@ test('carga el comparador y muestra una recomendacion sobre el escenario por def
   await expect(page.getByRole('cell', { name: 'Bonos' })).toBeVisible()
 })
 
-test('cambiar de pestaña actualiza el hash y el contenido, sin recargar la pagina', async ({
-  page,
-}) => {
+test('cambiar a una pestaña sin construir actualiza el hash y avisa', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByText(/es la mejor opción/)).toBeVisible()
 
-  await page.getByRole('button', { name: 'Escenarios' }).click()
+  await page.getByRole('button', { name: 'Supuestos' }).click()
 
   await expect(page.getByText(/todavía no está construida/)).toBeVisible()
-  await expect(page).toHaveURL(/#\/scenarios$/)
+  await expect(page).toHaveURL(/#\/assumptions$/)
+})
+
+test('la pestaña de Escenarios guarda el escenario activo en la biblioteca', async ({ page }) => {
+  await page.goto('/#/scenarios')
+
+  await expect(page.getByText('Escenario activo')).toBeVisible()
+  await expect(page.getByText('Todavía no has guardado ningún escenario.')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Guardar en la biblioteca' }).click()
+
+  await expect(page.getByText('Todavía no has guardado ningún escenario.')).toBeHidden()
+  await expect(page.getByRole('button', { name: 'Cargar' })).toBeVisible()
 })

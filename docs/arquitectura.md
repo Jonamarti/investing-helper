@@ -40,6 +40,26 @@ explícitos por workspace — ver el script en el `package.json` raíz. Si algú
 día `npm run lint:deps` vuelve a informar de muy pocos módulos cruzados sin
 que el repo haya encogido, es esto lo primero que hay que mirar.
 
+**Segunda nota de mantenimiento**: `eslint.config.js` también da este mismo
+aviso en el editor (más rápido que esperar a `lint:deps`), vía
+`no-restricted-imports` en los bloques de `infrastructure/**` y `ui/**`. Dos
+detalles no evidentes si se toca:
+
+- Los `files:` de esos bloques son rutas de fichero reales
+  (`apps/web/src/ui/**`, no `apps/web/src/src/ui/**`): un `${WEB}/src/ui`
+  con `WEB = 'apps/web/src'` duplica el `src` y el bloque no matchea nada.
+- `no-restricted-imports` compara el **especificador tal cual se escribe**
+  (`@investing-helper/core/domain/model`), no la ruta de fichero resuelta.
+  Usa `paths` (igualdad exacta), no `patterns`/`group` (glob): un
+  `group: ['@investing-helper/core']` también hace matching de
+  `@investing-helper/core/domain/model`, que es justo el alias que aquí está
+  permitido, y el aviso se dispara donde no debe.
+
+Ambos bugs eran del scaffold inicial y dejaban esta comprobación
+completamente muda; se encontraron al escribir `apps/web/src/ui/store/
+scenarioStore.ts`, que es el primer fichero de `ui/**` que de verdad importa
+`domain/model` y `application` a la vez.
+
 ## Qué va en cada carpeta
 
 - **`domain/shared`**: tipos y aritmética de base (`Money`, `Rate`,
@@ -91,10 +111,13 @@ randomMonthlyReturn` es el punto de enganche con el motor: si una
   (encadena migraciones de `Scenario.scenarioVersion`) sobre `domain/model`.
 - **`apps/web/src/ui`**: componentes React, formularios generados desde
   `ParamSpec` (pendiente: `FieldRenderer`), gráficos y las pestañas de la app.
-  Hecha la pestaña `features/comparison` (recomendación, ranking, gráfico
-  Recharts, cruces) sobre `store/scenarioStore.ts` (zustand) e `i18n/` (ES/EN).
-  Solo habla con el dominio a
-  través de DTOs.
+  Hechas `features/comparison` (recomendación, ranking, gráfico Recharts,
+  cruces) y `features/scenarios` (biblioteca: guardar, cargar, renombrar,
+  duplicar, borrar, exportar/importar JSON), las dos sobre
+  `store/scenarioStore.ts` (zustand) e `i18n/` (ES/EN). `scenarioStore.ts` es
+  la única pieza de `ui/**` que toca `infrastructure/persistence` además de
+  `application`: es la frontera entre el resto de la UI y dónde vive el
+  escenario, no algo que cada componente deba saber.
 
 ## Cómo añadir una estrategia nueva
 

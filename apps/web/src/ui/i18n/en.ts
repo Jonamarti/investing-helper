@@ -51,4 +51,21 @@ export const en: Readonly<Record<string, string>> = {
   'recommendation.caveat.negativeReal':
     'Real return is negative ({netGainReal}): purchasing power is being lost',
   'recommendation.caveat.highTax': 'Taxes take a large share of the gain ({taxShare})',
+
+  'scenarios.current.title': 'Active scenario',
+  'scenarios.current.nameLabel': 'Name',
+  'scenarios.current.namePlaceholder': 'Scenario name',
+  'scenarios.save': 'Save to library',
+  'scenarios.new': 'Blank new scenario',
+  'scenarios.export': 'Export to JSON',
+  'scenarios.import': 'Import JSON',
+  'scenarios.importError': 'Could not import: {reason}',
+
+  'scenarios.library.title': 'Library',
+  'scenarios.library.empty': "You haven't saved any scenario yet.",
+  'scenarios.library.updatedAt': 'Saved: {date}',
+  'scenarios.library.load': 'Load',
+  'scenarios.library.duplicate': 'Duplicate',
+  'scenarios.library.delete': 'Delete',
+  'scenarios.library.renameLabel': 'Name',
 }

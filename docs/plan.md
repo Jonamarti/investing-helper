@@ -461,27 +461,26 @@ Detalles que importan:
     escenario). Falta `FieldRenderer` y los campos genericos, que hacen falta
     para las pestañas que editan parametros (Supuestos, Deudas, ...).
 15. ▶ **Web/pestañas**: ✅ **Comparador** (recomendación, ranking, gráfico
-    nominal + poder de compra con Recharts, cruces). Supuestos, Deudas,
-    Aportaciones, Monte Carlo y Escenarios son un aviso de "todavía no
-    construida": necesitan `FieldRenderer` (Deudas, Aportaciones, Monte Carlo)
-    o la pestaña de biblioteca sobre `LocalStorageScenarioRepo` (Escenarios),
-    que es más trabajo que una tabla y un gráfico.
+    nominal + poder de compra con Recharts, cruces) y ✅ **Escenarios**
+    (biblioteca sobre `LocalStorageScenarioRepo`: guardar, cargar, renombrar,
+    duplicar, borrar, exportar/importar JSON). Supuestos, Deudas,
+    Aportaciones y Monte Carlo son un aviso de "todavía no construida":
+    necesitan `FieldRenderer`, que es más trabajo que una tabla y un gráfico.
 16. **Web/rendimiento**: `workerRunner` y `simulate.worker.ts` con fallback
     inline. Hoy `compareStrategies` corre siempre en el hilo principal: para
     el tamaño de escenario actual es instantáneo, así que esto es una
     optimización cuando haga falta, no un bloqueante.
-17. ▶ **E2E**: hecho `playwright.config.ts` y `e2e/smoke.spec.ts` (carga el
-    comparador, ve una recomendación real, cambia de pestaña) y el job `e2e`
-    en la CI, que ahora bloquea `deploy`. Falta el spec de la biblioteca de
-    escenarios, que necesita la pestaña de Escenarios (paso 15).
+17. ✅ **E2E**: `playwright.config.ts` y `e2e/smoke.spec.ts` — carga el
+    comparador y ve una recomendación real, cambia a una pestaña sin construir,
+    y guarda el escenario activo en la biblioteca de Escenarios — más el job
+    `e2e` en la CI, que bloquea `deploy`.
 18. ✅ **Deploy**: repo público, Settings → Pages → Source: GitHub Actions
     activado. El job `deploy` corre en cada push a `main`.
 
-Los pasos 1–13 y el 18 ya están sobre `main`, y los pasos 14, 15 y 17 tienen su
-primera parte hecha: la pestaña Comparador funciona de verdad (con el
-escenario por defecto), tiene su smoke test de Playwright, y el resto de
-pestañas avisan honestamente que no están construidas todavía. Este documento
-se actualiza según avanza el resto.
+Los pasos 1–13, 17 y 18 ya están sobre `main`, y los pasos 14 y 15 tienen sus
+dos primeras pestañas (Comparador y Escenarios) funcionando de verdad. El
+resto de pestañas avisan honestamente que no están construidas todavía, en vez
+de fingirlo. Este documento se actualiza según avanza el resto.
 
 ---
 

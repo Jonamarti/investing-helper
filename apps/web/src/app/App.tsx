@@ -1,4 +1,5 @@
 import { ComparisonTab } from '../ui/features/comparison/ComparisonTab'
+import { ScenariosTab } from '../ui/features/scenarios/ScenariosTab'
 import { DEFAULT_LOCALE, LocaleContext, useTranslation } from '../ui/i18n'
 import { DEFAULT_TAB, useHashTab } from './hashRouter'
 
@@ -18,10 +19,20 @@ function ComingSoon() {
 }
 
 function TabContent({ tab }: { readonly tab: string }) {
-  if ((tab as TabId) === 'comparison') {
-    return <ComparisonTab />
+  switch (tab as TabId) {
+    case 'comparison':
+      return <ComparisonTab />
+    case 'scenarios':
+      return <ScenariosTab />
+    case 'assumptions':
+    case 'debts':
+    case 'contributions':
+    case 'montecarlo':
+      return <ComingSoon />
+    default:
+      // Un hash que no es ninguna pestana conocida: mismo aviso que "no construida".
+      return <ComingSoon />
   }
-  return <ComingSoon />
 }
 
 function AppShell() {

@@ -8,7 +8,8 @@ libre mensual.
 **URL pública**: <https://jonamarti.github.io/investing-helper/>. Ya tiene la
 pestaña Comparador funcionando sobre el escenario por defecto (recomendación,
 ranking, gráfico de patrimonio nominal y poder de compra, cruces entre
-estrategias); el resto de pestañas son un aviso de "todavía no construida", ver
+estrategias) y una pestaña Escenarios para guardar/cargar/duplicar/exportar
+escenarios; el resto son un aviso de "todavía no construida", ver
 [Estado actual](#estado-actual).
 
 ## Estado actual
@@ -19,9 +20,9 @@ analítica (TIR, ranking, recomendación), Monte Carlo (GBM, percentiles) y la
 capa `application` (casos de uso `compareStrategies`/`runMonteCarlo`/
 `validateScenario`, DTOs, puertos). La app web (`apps/web`) tiene la
 infraestructura (`localStorage`, RNG con semilla) y un primer shell real: hash
-router, i18n (ES/EN), un store de zustand y la pestaña **Comparador** completa.
-Las demás pestañas (Supuestos, Deudas, Aportaciones, Monte Carlo, Escenarios)
-todavía no existen. El detalle de qué hay hecho está en
+router, i18n (ES/EN), un store de zustand y las pestañas **Comparador** y
+**Escenarios** completas. Las demás (Supuestos, Deudas, Aportaciones, Monte
+Carlo) todavía no existen. El detalle de qué hay hecho está en
 [docs/plan.md, §5](docs/plan.md#5-orden-de-implementación).
 
 ## Stack

@@ -28,13 +28,24 @@ describe('App', () => {
     expect(screen.getByText('Bonos')).toBeTruthy()
   })
 
-  it('cambiar de pestaña actualiza el hash y el contenido', async () => {
+  it('cambiar a una pestaña sin construir actualiza el hash y avisa', async () => {
+    render(<App />)
+    await screen.findByText('Comparador')
+
+    screen.getByRole('button', { name: 'Supuestos' }).click()
+
+    expect(await screen.findByText(/todavía no está construida/)).toBeTruthy()
+    expect(window.location.hash).toBe('#/assumptions')
+  })
+
+  it('la pestaña de Escenarios muestra el escenario activo y su biblioteca', async () => {
     render(<App />)
     await screen.findByText('Comparador')
 
     screen.getByRole('button', { name: 'Escenarios' }).click()
 
-    expect(await screen.findByText(/todavía no está construida/)).toBeTruthy()
+    expect(await screen.findByText('Escenario activo')).toBeTruthy()
+    expect(screen.getByText('Biblioteca')).toBeTruthy()
     expect(window.location.hash).toBe('#/scenarios')
   })
 })

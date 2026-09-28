@@ -59,4 +59,21 @@ export const es: Readonly<Record<string, string>> = {
     'La rentabilidad real es negativa ({netGainReal}): se pierde poder adquisitivo',
   'recommendation.caveat.highTax':
     'Los impuestos se llevan una parte importante de la ganancia ({taxShare})',
+
+  'scenarios.current.title': 'Escenario activo',
+  'scenarios.current.nameLabel': 'Nombre',
+  'scenarios.current.namePlaceholder': 'Nombre del escenario',
+  'scenarios.save': 'Guardar en la biblioteca',
+  'scenarios.new': 'Nuevo escenario en blanco',
+  'scenarios.export': 'Exportar a JSON',
+  'scenarios.import': 'Importar JSON',
+  'scenarios.importError': 'No se ha podido importar: {reason}',
+
+  'scenarios.library.title': 'Biblioteca',
+  'scenarios.library.empty': 'Todavía no has guardado ningún escenario.',
+  'scenarios.library.updatedAt': 'Guardado: {date}',
+  'scenarios.library.load': 'Cargar',
+  'scenarios.library.duplicate': 'Duplicar',
+  'scenarios.library.delete': 'Borrar',
+  'scenarios.library.renameLabel': 'Nombre',
 }

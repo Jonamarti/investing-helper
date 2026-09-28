@@ -5,33 +5,49 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
+/** Ruta de fichero real: usada en `files:` (eslint SI resuelve globs de fichero). */
 const CORE = 'packages/core/src'
 const WEB = 'apps/web/src'
 
-/** Paths que ui/** tiene prohibido tocar. Reforza la regla 4 de docs/arquitectura.md. */
+/**
+ * `no-restricted-imports` compara contra el especificador tal cual se
+ * escribe (`@investing-helper/core/...`), no contra la ruta de fichero
+ * resuelta: una lista con rutas de `packages/core/src/...` (como
+ * `.dependency-cruiser.mjs`) nunca haria matching con nada, y el aviso en el
+ * editor se quedaria mudo sin que nadie lo notara. Estas listas usan los
+ * mismos alias que `apps/web/vite.config.ts`/`vitest.config.ts`.
+ *
+ * El barrel entero (`@investing-helper/core` a secas) tira de todo el motor
+ * por dentro, asi que tambien esta prohibido donde haga falta una puerta
+ * estrecha: forzar el alias especifico (`.../domain/shared`,
+ * `.../application/ports`, ...) es lo que hace el resto de la lista inutil.
+ */
+const CORE_PKG = '@investing-helper/core'
+
+/** Especificadores que ui/** tiene prohibido importar. Refuerza la regla 4 de docs/arquitectura.md. */
 const FORBIDDEN_IN_UI = [
-  `${CORE}/domain/engine`,
-  `${CORE}/domain/strategies`,
-  `${CORE}/domain/analytics`,
-  `${CORE}/domain/montecarlo`,
-  `${CORE}/domain/amortization`,
-  `${CORE}/domain/taxes`,
-  `${CORE}/domain/params`,
-  `${CORE}/domain/model`,
+  CORE_PKG,
+  `${CORE_PKG}/domain/engine`,
+  `${CORE_PKG}/domain/strategies`,
+  `${CORE_PKG}/domain/analytics`,
+  `${CORE_PKG}/domain/montecarlo`,
+  `${CORE_PKG}/domain/amortization`,
+  `${CORE_PKG}/domain/taxes`,
+  `${CORE_PKG}/domain/params`,
 ]
 
-/** Paths que infrastructure/** tiene prohibido tocar. Reforza la regla 3. */
+/** Especificadores que infrastructure/** tiene prohibido importar. Refuerza la regla 3. */
 const FORBIDDEN_IN_INFRA = [
-  `${WEB}/ui`,
-  `${CORE}/domain/engine`,
-  `${CORE}/domain/strategies`,
-  `${CORE}/domain/analytics`,
-  `${CORE}/domain/montecarlo`,
-  `${CORE}/domain/amortization`,
-  `${CORE}/domain/taxes`,
-  `${CORE}/domain/params`,
-  `${CORE}/domain/model`,
-  `${CORE}/application/usecases`,
+  CORE_PKG,
+  `${CORE_PKG}/application`,
+  `${CORE_PKG}/application/usecases`,
+  `${CORE_PKG}/domain/engine`,
+  `${CORE_PKG}/domain/strategies`,
+  `${CORE_PKG}/domain/analytics`,
+  `${CORE_PKG}/domain/montecarlo`,
+  `${CORE_PKG}/domain/amortization`,
+  `${CORE_PKG}/domain/taxes`,
+  `${CORE_PKG}/domain/params`,
 ]
 
 export default defineConfig([
@@ -124,28 +140,33 @@ export default defineConfig([
     },
   },
   {
-    files: [`${WEB}/src/infrastructure/**/*.{ts,tsx}`],
+    files: [`${WEB}/infrastructure/**/*.{ts,tsx}`],
     rules: {
+      // `paths` compara el especificador por igualdad exacta, a diferencia de
+      // `patterns`/`group` (glob): un `group: ['@investing-helper/core']`
+      // tambien hace matching de `@investing-helper/core/domain/model`, que es
+      // justo lo que aqui SI esta permitido. Con `paths` cada entrada solo
+      // bloquea su propio especificador exacto.
       'no-restricted-imports': [
         'error',
         {
-          patterns: FORBIDDEN_IN_INFRA.map((g) => ({
-            group: [g],
-            message: `Prohibido importar ${g} desde infrastructure (ver docs/arquitectura.md regla 3).`,
+          paths: FORBIDDEN_IN_INFRA.map((name) => ({
+            name,
+            message: `Prohibido importar ${name} desde infrastructure (ver docs/arquitectura.md regla 3).`,
           })),
         },
       ],
     },
   },
   {
-    files: [`${WEB}/src/ui/**/*.{ts,tsx}`],
+    files: [`${WEB}/ui/**/*.{ts,tsx}`],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          patterns: FORBIDDEN_IN_UI.map((g) => ({
-            group: [g],
-            message: `Prohibido importar ${g} desde ui (ver docs/arquitectura.md regla 4): la UI consume DTOs.`,
+          paths: FORBIDDEN_IN_UI.map((name) => ({
+            name,
+            message: `Prohibido importar ${name} desde ui (ver docs/arquitectura.md regla 4): la UI consume DTOs.`,
           })),
         },
       ],
@@ -155,9 +176,11 @@ export default defineConfig([
   reactRefresh.configs.vite,
 
   // Las 5 reglas de docs/arquitectura.md las verifica .dependency-cruiser.mjs
-  // (fuente unica). Los bloques `no-restricted-imports` de arriba dan feedback
-  // inmediato en el editor para los imports que mas se repiten; ver
-  // `deuda-tecnica.md` (DEUDA-002).
+  // (fuente unica, resuelve el grafo real de imports). Los bloques
+  // `no-restricted-imports` de arriba dan el mismo aviso en el editor al
+  // teclear, sin esperar a `npm run lint:deps`; solo cubren los
+  // especificadores de `@investing-helper/core` (ver el comentario de
+  // `CORE_PKG`), no imports relativos dentro del propio monorepo.
 
   // ── Tests ─────────────────────────────────────────────────────────────────
   {
