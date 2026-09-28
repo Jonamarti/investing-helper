@@ -31,20 +31,23 @@ export default {
     },
     {
       name: 'application-depends-on-domain-only',
-      comment: 'Regla 2: application/** puede importar domain/**, nada mas',
+      comment:
+        'Regla 2: application/** puede importar domain/** y otros ficheros de ' +
+        'application/** (sus propios ports/dto/usecases), nada mas.',
       severity: 'error',
       from: { path: LAYER.application },
-      to: { pathNot: LAYER.domain },
+      to: { pathNot: `^(${LAYER.domain}|${LAYER.application})` },
     },
     {
       name: 'infrastructure-no-ui-no-domain-engine',
       comment:
-        'Regla 3: infrastructure/** solo usa application/ports y domain/shared. ' +
-        'No toca la UI ni el motor (engine, strategies, analytics, taxes, ...).',
+        'Regla 3: infrastructure/** solo usa application/ports, domain/model, ' +
+        'domain/shared y otros ficheros de infrastructure/**. Nunca la UI ni el ' +
+        'motor (engine, strategies, analytics, montecarlo, amortization, taxes, params).',
       severity: 'error',
       from: { path: LAYER.infrastructure },
       to: {
-        pathNot: `^(${LAYER.application}/ports|${LAYER.domain}/shared)`,
+        pathNot: `^(${LAYER.application}/ports|${LAYER.domain}/(shared|model)|${LAYER.infrastructure})`,
       },
     },
     {
@@ -68,13 +71,19 @@ export default {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: '(^|/)node_modules/|^dist/|^coverage/|^\\.tsbuild/|^test-results/' },
+    // Anclados con `(^|/)`, no `^`: `dist/` y `coverage/` cuelgan de
+    // `apps/web/` y `packages/core/`, no de la raiz del repo.
+    exclude: { path: '(^|/)(node_modules|dist|coverage|\\.tsbuild|test-results)/' },
     tsPreCompilationDeps: true,
     combinedDependencies: false,
     tsConfig: { fileName: 'tsconfig.json' },
     enhancedResolveOptions: {
       exportsFields: ['exports'],
       conditionNames: ['import', 'types', 'default'],
+      // Sin esto, enhanced-resolve usa su lista por defecto (sin `.ts`/`.tsx`):
+      // no resuelve `./domain` a `./domain/index.ts` ni un `import './foo'`
+      // sin extension, y el grafo se queda vacio sin avisar de nada.
+      extensions: ['.ts', '.tsx', '.mjs', '.js', '.jsx', '.json'],
     },
     reporterOptions: {
       dot: { collapsePattern: 'node_modules/.*' },

@@ -6,8 +6,14 @@
     "jsx": "react-jsx",
     "paths": {
       "@investing-helper/core": ["../../packages/core/src/index.ts"],
+      "@investing-helper/core/application": ["../../packages/core/src/application/index.ts"],
+      "@investing-helper/core/application/ports": [
+        "../../packages/core/src/application/ports/index.ts"
+      ],
+      "@investing-helper/core/domain/model": ["../../packages/core/src/domain/model/index.ts"],
+      "@investing-helper/core/domain/shared": ["../../packages/core/src/domain/shared/index.ts"],
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "e2e", "vite.config.ts", "playwright.config.ts"]
+  "include": ["src", "test", "e2e", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"]
 }

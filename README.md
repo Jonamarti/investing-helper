@@ -17,9 +17,9 @@ dominio, amortización, simulador, las cinco estrategias, motor fiscal,
 analítica (TIR, ranking, recomendación), Monte Carlo (GBM, percentiles) y la
 capa `application` (casos de uso `compareStrategies`/`runMonteCarlo`/
 `validateScenario`, DTOs, puertos) que lo deja listo para que la UI lo consuma.
-La aplicación web (`apps/web`) todavía es solo el andamiaje de la Fase 0: falta
-la infraestructura (`localStorage`, RNG) y toda la interfaz real. El detalle de
-qué hay hecho está en [docs/plan.md, §5](docs/plan.md#5-orden-de-implementación).
+La app web (`apps/web`) tiene ya la infraestructura (`localStorage`, RNG con
+semilla), pero la interfaz real todavía no existe: solo el andamiaje de la Fase 0. El detalle de qué hay hecho está en
+[docs/plan.md, §5](docs/plan.md#5-orden-de-implementación).
 
 ## Stack
 
@@ -40,15 +40,16 @@ qué hay hecho está en [docs/plan.md, §5](docs/plan.md#5-orden-de-implementaci
 
 Desde la raíz del repo:
 
-| Script                  | Qué hace                                                       |
-| ----------------------- | -------------------------------------------------------------- |
-| `npm run dev`           | Arranca la app web en modo desarrollo                          |
-| `npm run build`         | Compila la app web a `apps/web/dist`                           |
-| `npm test`              | Ejecuta los tests unitarios y de propiedades del motor         |
-| `npm run test:coverage` | Igual, con el informe de cobertura (umbral 90/90/85/90)        |
-| `npm run lint`          | ESLint + Prettier (`--check`) + `dependency-cruiser`           |
-| `npm run typecheck`     | `tsc --noEmit` en cada workspace                               |
-| `npm run verify`        | `lint` + `typecheck` + `test:coverage` + `build`, en ese orden |
+| Script                  | Qué hace                                                      |
+| ----------------------- | ------------------------------------------------------------- |
+| `npm run dev`           | Arranca la app web en modo desarrollo                         |
+| `npm run build`         | Compila la app web a `apps/web/dist`                          |
+| `npm test`              | Ejecuta los tests unitarios y de propiedades del motor        |
+| `npm run test:coverage` | Igual, con el informe de cobertura (umbral 90/90/85/90)       |
+| `npm run test:web`      | Tests unitarios de `apps/web` (infraestructura, jsdom)        |
+| `npm run lint`          | ESLint + Prettier (`--check`) + `dependency-cruiser`          |
+| `npm run typecheck`     | `tsc --noEmit` en cada workspace                              |
+| `npm run verify`        | `lint` + `typecheck` + `test:coverage` + `test:web` + `build` |
 
 `npm run verify` es lo que corre en CI (job `quality`); conviene lanzarlo antes
 de cada commit con cambios de código.

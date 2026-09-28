@@ -12,6 +12,22 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
+        // Mas especificos primero: dan a `infrastructure/**` una puerta estrecha
+        // (`application/ports`, `domain/model`, `domain/shared`) en vez del
+        // barrel entero, para que `dependency-cruiser` pueda hacer cumplir la
+        // regla 3 de docs/arquitectura.md.
+        '@investing-helper/core/application/ports': fileURLToPath(
+          new URL('../../packages/core/src/application/ports/index.ts', import.meta.url),
+        ),
+        '@investing-helper/core/application': fileURLToPath(
+          new URL('../../packages/core/src/application/index.ts', import.meta.url),
+        ),
+        '@investing-helper/core/domain/model': fileURLToPath(
+          new URL('../../packages/core/src/domain/model/index.ts', import.meta.url),
+        ),
+        '@investing-helper/core/domain/shared': fileURLToPath(
+          new URL('../../packages/core/src/domain/shared/index.ts', import.meta.url),
+        ),
         '@investing-helper/core': fileURLToPath(
           new URL('../../packages/core/src/index.ts', import.meta.url),
         ),

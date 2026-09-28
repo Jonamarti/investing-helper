@@ -10,21 +10,35 @@ este documento es la versión legible de esas cinco reglas, no al revés.
 ```
 packages/core/src/domain          ← motor, cero dependencias
 packages/core/src/application     ← casos de uso + puertos + DTOs
-apps/web/src/infrastructure       ← adaptadores: localStorage, RNG, tipos de cambio (pendiente, paso 13)
+apps/web/src/infrastructure       ← adaptadores: localStorage, RNG
 apps/web/src/ui                   ← React (pendiente, paso 14 en adelante)
 ```
 
-| Regla | Desde                                                           | Puede importar                                                                                                                                                               |
-| ----- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | `domain/**`                                                     | solo `domain/**`                                                                                                                                                             |
-| 2     | `application/**`                                                | `domain/**`, nada más                                                                                                                                                        |
-| 3     | `infrastructure/**`                                             | `application/ports` y `domain/shared`, nunca la UI ni el motor (`engine`, `strategies`, `analytics`, `montecarlo`, `amortization`, `taxes`)                                  |
-| 4     | `ui/**`                                                         | `application/dto` y `domain/shared` (`Money`/`Rate`/`Percent`, que son value objects); nunca `domain/engine\|strategies\|analytics\|montecarlo\|amortization\|taxes\|params` |
-| 5     | cualquiera salvo `ui/**`, `app/**`, `main.tsx` y `container.ts` | nunca `ui/**`                                                                                                                                                                |
+| Regla | Desde                                                           | Puede importar                                                                                                                                                                                         |
+| ----- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1     | `domain/**`                                                     | solo `domain/**`                                                                                                                                                                                       |
+| 2     | `application/**`                                                | `domain/**` y el resto de `application/**` (sus propios `ports`/`dto`/`usecases`)                                                                                                                      |
+| 3     | `infrastructure/**`                                             | `application/ports`, `domain/model`, `domain/shared` y el resto de `infrastructure/**`; nunca la UI ni el motor (`engine`, `strategies`, `analytics`, `montecarlo`, `amortization`, `taxes`, `params`) |
+| 4     | `ui/**`                                                         | `application/dto` y `domain/shared` (`Money`/`Rate`/`Percent`, que son value objects); nunca `domain/engine\|strategies\|analytics\|montecarlo\|amortization\|taxes\|params`                           |
+| 5     | cualquiera salvo `ui/**`, `app/**`, `main.tsx` y `container.ts` | nunca `ui/**`                                                                                                                                                                                          |
 
 La consecuencia práctica de la regla 1 es que `packages/core/package.json` no
 declara ninguna dependencia: si `domain/` necesitara una librería externa, la
 regla ya se habría roto antes de que `depcruise` lo detecte.
+
+`domain/model` (`Scenario`, `Loan`, ...) se trata como `domain/shared`: son
+datos planos, sin lógica de motor, y `infrastructure/persistence` necesita el
+tipo `Scenario` para poder guardarlo y cargarlo. Lo que la regla 3 bloquea es
+el motor (`engine`/`strategies`/`analytics`/`montecarlo`/`amortization`/`taxes`/`params`),
+no cualquier tipo de dato.
+
+**Nota de mantenimiento**: `dependency-cruiser` solo detecta lo que consigue
+recorrer. Pasarle un directorio a secas (`depcruise .` o `depcruise src`) se
+quedaba silenciosamente en un puñado de ficheros sueltos en esta instalación
+(sin avisar de ningún error), así que `lint:deps` le pasa patrones glob
+explícitos por workspace — ver el script en el `package.json` raíz. Si algún
+día `npm run lint:deps` vuelve a informar de muy pocos módulos cruzados sin
+que el repo haya encogido, es esto lo primero que hay que mirar.
 
 ## Qué va en cada carpeta
 
@@ -70,9 +84,11 @@ randomMonthlyReturn` es el punto de enganche con el motor: si una
   `validateScenario` (valida cada estrategia contra su catálogo más las reglas
   que solo tienen sentido mirando el escenario entero: préstamos referenciados,
   ids duplicados, sueldo no negativo).
-- **`apps/web/src/infrastructure`**: implementaciones concretas de los puertos
-  — repositorios de `localStorage`, generador de números aleatorios,
-  proveedor de tipos de cambio manuales.
+- **`apps/web/src/infrastructure`**: implementaciones concretas de los
+  puertos — `rng/mulberry32.ts` (`IRandomSource`), y
+  `persistence/localStorageRepo.ts` (biblioteca de escenarios),
+  `persistence/jsonFileRepo.ts` (import/export) y `persistence/migrations.ts`
+  (encadena migraciones de `Scenario.scenarioVersion`) sobre `domain/model`.
 - **`apps/web/src/ui`**: componentes React, formularios generados desde
   `ParamSpec`, gráficos y las pestañas de la app. Solo habla con el dominio a
   través de DTOs.

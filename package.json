@@ -19,15 +19,16 @@
     "lint": "npm run lint:eslint && npm run lint:format && npm run lint:deps",
     "lint:eslint": "eslint .",
     "lint:format": "prettier --check .",
-    "lint:deps": "depcruise .",
+    "lint:deps": "depcruise \"packages/core/src/**/*.ts\" \"packages/core/test/**/*.ts\" \"apps/web/src/**/*.ts\" \"apps/web/src/**/*.tsx\" \"apps/web/test/**/*.ts\" \"apps/web/e2e/**/*.ts\"",
     "format": "prettier --write .",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test -w @investing-helper/core",
     "test:watch": "npm run test:watch -w @investing-helper/core",
     "test:coverage": "npm run test:coverage -w @investing-helper/core",
+    "test:web": "npm run test -w @investing-helper/web",
     "test:e2e": "npm run test:e2e -w @investing-helper/web",
     "test:e2e:ui": "npm run test:e2e:ui -w @investing-helper/web",
-    "verify": "npm run lint && npm run typecheck && npm run test:coverage && npm run build"
+    "verify": "npm run lint && npm run typecheck && npm run test:coverage && npm run test:web && npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

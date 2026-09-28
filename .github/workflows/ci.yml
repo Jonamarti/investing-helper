@@ -28,6 +28,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:coverage
+      - run: npm run test:web
       - run: npm run build
 
   # El job `e2e` entra aqui en la fase de E2E, cuando existan los specs y el

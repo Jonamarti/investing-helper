@@ -179,8 +179,8 @@ investing-helper/
         ├── infrastructure/
         │   ├── rng/mulberry32.ts
         │   ├── persistence/{localStorageRepo,jsonFileRepo,migrations}.ts
-        │   ├── rates/manualFxProvider.ts
-        │   ├── clock/systemDateSource.ts
+        │   ├── rates/manualFxProvider.ts       # pendiente: nada lo necesita todavia
+        │   ├── clock/systemDateSource.ts       # pendiente: nada lo necesita todavia
         │   └── runner/{SimulationRunner.ts,workerRunner.ts,inlineRunner.ts,simulate.worker.ts}
         └── ui/
             ├── components/
@@ -427,8 +427,14 @@ el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
     Monte Carlo) y `usecases` (`compareStrategies`, `runMonteCarlo`,
     `validateScenario`), con tests. Faltan property-based con fast-check para
     esta capa y golden files; cobertura de `packages/core` ≥ 90 % ya cumplida.
-13. ▶ **Web/infra**: `mulberry32`, repos de localStorage (biblioteca de
-    escenarios + import/export), `manualFxProvider`, `container.ts`.
+13. ✅ **Web/infra**: `mulberry32`, repos de localStorage (biblioteca de
+    escenarios + import/export + migraciones) y `container.ts`, con tests
+    (jsdom, `Storage` inyectado). `manualFxProvider` se deja para cuando una
+    pestaña necesite de verdad tipos de cambio manuales: `Scenario.exchangeRates`
+    ya viaja con el escenario, y no había nada que este archivo fuera a hacer
+    todavía. De camino, `.dependency-cruiser.mjs` tenía dos fallos que dejaban
+    `lint:deps` sin comprobar casi nada (ver `docs/arquitectura.md`): se han
+    corregido y ahora sí cruza los 99 módulos de `packages/core` y `apps/web`.
 14. **Web/shell**: App, hash router (`#/<tab>`), i18n, formateo, stores,
     `FieldRenderer` y campos.
 15. **Web/pestañas**: Supuestos → Deudas → Aportaciones → **Comparador** →
