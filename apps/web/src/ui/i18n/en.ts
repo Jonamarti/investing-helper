@@ -161,4 +161,18 @@ export const en: Readonly<Record<string, string>> = {
   'contributions.overrides.monthKey.label': 'Month (YYYY-MM)',
   'contributions.overrides.lumpSum.label': 'One-off contribution',
   'contributions.overrides.monthlyAmount.label': 'Replace the monthly contribution with',
+
+  'montecarlo.disabled': 'Monte Carlo is not enabled. Enable it in the Assumptions tab.',
+  'montecarlo.noEquity': 'There is no equity strategy in this scenario: add one in Assumptions.',
+  'montecarlo.strategy.label': 'Strategy',
+  'montecarlo.run': 'Run Monte Carlo',
+  'montecarlo.results.title': 'Result ({paths} paths)',
+  'montecarlo.results.p5': 'P5',
+  'montecarlo.results.p25': 'P25',
+  'montecarlo.results.p50': 'Median',
+  'montecarlo.results.p75': 'P75',
+  'montecarlo.results.p95': 'P95',
+  'montecarlo.results.probBeatsBest': 'Probability of beating the best alternative: {value}',
+  'montecarlo.results.probBeatsBestNone': 'There is no other strategy to compare against.',
+  'montecarlo.results.probBeatsInflation': 'Probability of beating inflation: {value}',
 }

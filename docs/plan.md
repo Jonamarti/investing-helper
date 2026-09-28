@@ -462,35 +462,37 @@ Detalles que importan:
     ParamsForm}.tsx`: recorren un `ParamSpec[]` (`domain/params`) y pintan el
     input segun `kind` (money/percent/number/select/boolean/month/currency),
     tal como preveía este mismo documento en §3.4.
-15. ▶ **Web/pestañas**: ✅ **Comparador**, ✅ **Escenarios** (biblioteca sobre
+15. ✅ **Web/pestañas**: **Comparador**, **Escenarios** (biblioteca sobre
     `LocalStorageScenarioRepo`: guardar, cargar, renombrar, duplicar, borrar,
-    exportar/importar JSON), ✅ **Deudas** (alta, edición y borrado de
-    préstamos, forma fija de `Loan`), ✅ **Supuestos** (inflación, horizonte,
-    ajustes de Monte Carlo, y la lista de estrategias a comparar — añadir,
-    quitar y editar cada una con `FieldRenderer`, incluida la lista de
-    préstamos de una estrategia de amortizar deuda y los componentes de una
-    cartera mixta, anidando `ParamsForm` una vez más) y ✅ **Aportaciones**
-    (nómina, plan de aportaciones y correcciones manuales por mes —
-    `Salary`/`ContributionPlan`, forma fija como `Loan`). Solo queda **Monte
-    Carlo**: ejecutar `runMonteCarlo` y ver el resultado, que es distinto de
-    configurarlo (eso ya vive en Supuestos) — sigue como aviso de "todavía no
-    construida".
+    exportar/importar JSON), **Deudas** (alta, edición y borrado de préstamos,
+    forma fija de `Loan`), **Supuestos** (inflación, horizonte, ajustes de
+    Monte Carlo, y la lista de estrategias a comparar — añadir, quitar y
+    editar cada una con `FieldRenderer`, incluida la lista de préstamos de una
+    estrategia de amortizar deuda y los componentes de una cartera mixta,
+    anidando `ParamsForm` una vez más), **Aportaciones** (nómina, plan de
+    aportaciones y correcciones manuales por mes, forma fija como `Loan`) y
+    **Monte Carlo** (ejecutar `runMonteCarlo` sobre la estrategia `equity`
+    elegida — via `createRandomSource(seed)` de `container.ts` — y ver
+    percentiles y probabilidades; 1000 trayectorias tardan bien por debajo de
+    un segundo en el hilo principal, sin necesitar el worker del paso 16).
+    Las seis pestañas del plan original están hechas.
 16. **Web/rendimiento**: `workerRunner` y `simulate.worker.ts` con fallback
-    inline. Hoy `compareStrategies` corre siempre en el hilo principal: para
-    el tamaño de escenario actual es instantáneo, así que esto es una
+    inline. Hoy `compareStrategies` y `runMonteCarlo` corren siempre en el
+    hilo principal: para el tamaño de escenario actual son instantáneos
+    (Monte Carlo con 1000 trayectorias, bajo el segundo), así que esto es una
     optimización cuando haga falta, no un bloqueante.
 17. ✅ **E2E**: `playwright.config.ts` y `e2e/smoke.spec.ts` — carga el
-    comparador y ve una recomendación real, cambia a una pestaña sin construir,
-    y guarda el escenario activo en la biblioteca de Escenarios — más el job
-    `e2e` en la CI, que bloquea `deploy`.
+    comparador y ve una recomendación real, un hash desconocido avisa de "no
+    construida", Monte Carlo avisa de que hay que activarlo en Supuestos, y
+    la pestaña de Escenarios guarda el escenario activo en la biblioteca —
+    más el job `e2e` en la CI, que bloquea `deploy`.
 18. ✅ **Deploy**: repo público, Settings → Pages → Source: GitHub Actions
     activado. El job `deploy` corre en cada push a `main`.
 
-Los pasos 1–14, 17 y 18 ya están sobre `main`, y el paso 15 tiene cinco
-pestañas (Comparador, Escenarios, Deudas, Supuestos y Aportaciones)
-funcionando de verdad. Solo Monte Carlo avisa honestamente que no está
-construida todavía, en vez de fingirlo. Este documento se actualiza según
-avanza el resto.
+Los pasos 1–15, 17 y 18 ya están sobre `main`, con las seis pestañas de la
+`apps/web` funcionando de verdad. Solo queda el paso 16 (rendimiento, una
+optimización sin necesidad todavía) como trabajo pendiente del plan original.
+Este documento se actualiza si eso cambia.
 
 ---
 

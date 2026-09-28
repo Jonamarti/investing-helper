@@ -5,14 +5,14 @@ deuda, invertir en bonos, invertir en renta variable o dejar el dinero en
 cuenta corriente, ajustando por inflación, crecimiento del sueldo y dinero
 libre mensual.
 
-**URL pública**: <https://jonamarti.github.io/investing-helper/>. Ya tiene la
-pestaña Comparador funcionando sobre el escenario por defecto (recomendación,
-ranking, gráfico de patrimonio nominal y poder de compra, cruces entre
-estrategias), Escenarios (guardar/cargar/duplicar/exportar), Deudas (alta y
-edición de préstamos), Supuestos (inflación, horizonte, Monte Carlo y qué
-estrategias comparar, con todos sus parámetros) y Aportaciones (nómina y plan
-de aportaciones); solo falta ejecutar Monte Carlo y ver el resultado, que
-avisa honestamente de "todavía no construida", ver
+**URL pública**: <https://jonamarti.github.io/investing-helper/>. La app está
+completa: Comparador (recomendación, ranking, gráfico de patrimonio nominal y
+poder de compra, cruces entre estrategias), Escenarios
+(guardar/cargar/duplicar/exportar), Deudas (alta y edición de préstamos),
+Supuestos (inflación, horizonte, Monte Carlo y qué estrategias comparar, con
+todos sus parámetros), Aportaciones (nómina y plan de aportaciones) y Monte
+Carlo (ejecutarlo sobre la estrategia de renta variable elegida y ver
+percentiles y probabilidades). El detalle de qué queda por pulir está en
 [Estado actual](#estado-actual).
 
 ## Estado actual
@@ -25,11 +25,16 @@ capa `application` (casos de uso `compareStrategies`/`runMonteCarlo`/
 infraestructura (`localStorage`, RNG con semilla), un shell real (hash router,
 i18n ES/EN, store de zustand) y un `FieldRenderer` genérico que recorre el
 catálogo declarativo de `ParamSpec` del dominio para generar formularios sin
-conocer las estrategias. Con eso, las pestañas **Comparador**, **Escenarios**,
-**Deudas**, **Supuestos** y **Aportaciones** están completas. Solo falta
-**Monte Carlo**: ejecutarlo y ver el resultado (los ajustes ya se editan en
-Supuestos). El detalle de qué hay hecho está en
-[docs/plan.md, §5](docs/plan.md#5-orden-de-implementación).
+conocer las estrategias. Con eso, las seis pestañas del plan original
+(**Comparador**, **Escenarios**, **Deudas**, **Supuestos**, **Aportaciones** y
+**Monte Carlo**) están completas y funcionando sobre el escenario activo.
+Queda pendiente el `workerRunner` (paso 16 del plan: mover el cálculo a un Web
+Worker), una optimización de rendimiento que hoy no hace falta —1000
+trayectorias de Monte Carlo tardan bien por debajo de un segundo en el hilo
+principal—, y la interfaz todavía no muestra los errores de
+`validateScenario`/`validateStrategyParams` (existen y están probados en
+`packages/core`, pero ninguna pestaña los pinta todavía). El detalle completo
+está en [docs/plan.md, §5](docs/plan.md#5-orden-de-implementación).
 
 ## Stack
 

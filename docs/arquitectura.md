@@ -11,7 +11,7 @@ este documento es la versión legible de esas cinco reglas, no al revés.
 packages/core/src/domain          ← motor, cero dependencias
 packages/core/src/application     ← casos de uso + puertos + DTOs
 apps/web/src/infrastructure       ← adaptadores: localStorage, RNG
-apps/web/src/ui                   ← React (Comparador, Escenarios, Deudas, Supuestos; el resto, pendiente)
+apps/web/src/ui                   ← React (las seis pestañas)
 ```
 
 | Regla | Desde                                                           | Puede importar                                                                                                                                                                                         |
@@ -125,11 +125,14 @@ randomMonthlyReturn` es el punto de enganche con el motor: si una
   `FieldRenderer`), `features/assumptions` (inflación, horizonte, ajustes de
   Monte Carlo, y la lista de estrategias — con `FieldRenderer` para sus
   parámetros, el checklist de préstamos de una estrategia de amortizar deuda,
-  y `ParamsForm` anidado para los componentes de una cartera mixta) y
+  y `ParamsForm` anidado para los componentes de una cartera mixta),
   `features/contributions` (nómina y plan de aportaciones, forma fija como
-  `Loan`), todas sobre `store/scenarioStore.ts` (zustand) e `i18n/` (ES/EN).
-  `scenarioStore.ts` es la única pieza de `ui/**` que toca
-  `infrastructure/persistence` además de `application`: es la frontera entre
+  `Loan`) y `features/montecarlo` (ejecuta `runMonteCarlo` con
+  `createRandomSource(seed)` de `container.ts` y muestra percentiles y
+  probabilidades), todas sobre `store/scenarioStore.ts` (zustand) e `i18n/`
+  (ES/EN). `scenarioStore.ts` es la única pieza de `ui/**` que toca
+  `infrastructure/persistence` y `container.ts` además de `application`: es
+  la frontera entre
   el resto de la UI y dónde vive el escenario, no algo que cada componente
   deba saber.
 

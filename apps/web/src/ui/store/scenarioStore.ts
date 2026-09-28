@@ -1,7 +1,13 @@
 import { create } from 'zustand'
-import { compareStrategies, type ComparisonResultDto } from '@investing-helper/core/application'
+import {
+  compareStrategies,
+  runMonteCarlo,
+  strategyInputsOf,
+  type ComparisonResultDto,
+  type MonteCarloResultDto,
+} from '@investing-helper/core/application'
 import { defaultScenario, type Scenario } from '@investing-helper/core/domain/model'
-import { scenarioRepo } from '../../container'
+import { createRandomSource, scenarioRepo } from '../../container'
 import {
   exportScenarioToJson,
   importScenarioFromJson,
@@ -15,6 +21,8 @@ interface ScenarioStore {
   readonly comparison: ComparisonResultDto
   /** La biblioteca guardada en localStorage, para la pestana de Escenarios. */
   readonly library: readonly ScenarioIndexEntry[]
+  /** Ultima corrida de Monte Carlo, si se ha lanzado alguna para este escenario. */
+  readonly monteCarloResult: MonteCarloResultDto | null
   setScenario: (scenario: Scenario) => void
   refreshLibrary: () => void
   /** Guarda el escenario activo (upsert por id) con el nombre dado. */
@@ -27,10 +35,14 @@ interface ScenarioStore {
   deleteFromLibrary: (id: string) => void
   exportCurrentToJson: () => string
   importScenarioFromJsonText: (json: string) => ImportResult
+  /** Corre Monte Carlo para la estrategia `equity` con ese id, si el escenario lo permite. */
+  runMonteCarloFor: (strategyId: string) => void
 }
 
-function withComparison(scenario: Scenario): Pick<ScenarioStore, 'scenario' | 'comparison'> {
-  return { scenario, comparison: compareStrategies(scenario) }
+function withComparison(
+  scenario: Scenario,
+): Pick<ScenarioStore, 'scenario' | 'comparison' | 'monteCarloResult'> {
+  return { scenario, comparison: compareStrategies(scenario), monteCarloResult: null }
 }
 
 /**
@@ -92,5 +104,16 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
     }
     set(withComparison(result.value))
     return { ok: true }
+  },
+
+  runMonteCarloFor: (strategyId) => {
+    const { scenario } = get()
+    const settings = scenario.assumptions.monteCarlo
+    const equityInput = strategyInputsOf(scenario).find((input) => input.id === strategyId)
+    if (!settings || !equityInput) {
+      return
+    }
+    const result = runMonteCarlo(scenario, equityInput, settings, createRandomSource(settings.seed))
+    set({ monteCarloResult: result })
   },
 }))

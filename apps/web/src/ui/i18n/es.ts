@@ -169,4 +169,19 @@ export const es: Readonly<Record<string, string>> = {
   'contributions.overrides.monthKey.label': 'Mes (AAAA-MM)',
   'contributions.overrides.lumpSum.label': 'Aporte puntual',
   'contributions.overrides.monthlyAmount.label': 'Sustituye el aporte mensual por',
+
+  'montecarlo.disabled': 'Monte Carlo no está activado. Actívalo en la pestaña Supuestos.',
+  'montecarlo.noEquity':
+    'No hay ninguna estrategia de renta variable en este escenario: añade una en Supuestos.',
+  'montecarlo.strategy.label': 'Estrategia',
+  'montecarlo.run': 'Ejecutar Monte Carlo',
+  'montecarlo.results.title': 'Resultado ({paths} trayectorias)',
+  'montecarlo.results.p5': 'P5',
+  'montecarlo.results.p25': 'P25',
+  'montecarlo.results.p50': 'Mediana',
+  'montecarlo.results.p75': 'P75',
+  'montecarlo.results.p95': 'P95',
+  'montecarlo.results.probBeatsBest': 'Probabilidad de superar a la mejor alternativa: {value}',
+  'montecarlo.results.probBeatsBestNone': 'No hay otra estrategia con la que comparar.',
+  'montecarlo.results.probBeatsInflation': 'Probabilidad de batir a la inflación: {value}',
 }

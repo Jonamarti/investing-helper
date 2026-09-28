@@ -28,13 +28,20 @@ describe('App', () => {
     expect(screen.getByText('Bonos')).toBeTruthy()
   })
 
-  it('cambiar a una pestaña sin construir actualiza el hash y avisa', async () => {
+  it('un hash que no es ninguna pestaña conocida avisa de que no esta construida', async () => {
+    window.location.hash = '#/no-existe'
+    render(<App />)
+
+    expect(await screen.findByText(/todavía no está construida/)).toBeTruthy()
+  })
+
+  it('cambiar a Monte Carlo permite ejecutarlo sobre la estrategia de renta variable', async () => {
     render(<App />)
     await screen.findByText('Comparador')
 
     screen.getByRole('button', { name: 'Monte Carlo' }).click()
 
-    expect(await screen.findByText(/todavía no está construida/)).toBeTruthy()
+    expect(await screen.findByText(/Monte Carlo no está activado/)).toBeTruthy()
     expect(window.location.hash).toBe('#/montecarlo')
   })
 
