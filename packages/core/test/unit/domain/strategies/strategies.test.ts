@@ -4,10 +4,13 @@ import {
   bondsEngine,
   bondPriceAt,
   cashEngine,
+  closedLoanIds,
   debtPaydownEngine,
   equityEngine,
+  loansAboveHurdle,
   mixedEngine,
   monthlyCouponOf,
+  orderLoans,
 } from '../../../../src/domain/strategies'
 import {
   initialState,
@@ -16,7 +19,12 @@ import {
   type EngineState,
   type StrategyEngine,
 } from '../../../../src/domain/engine'
-import type { BondsParams, StrategyParams } from '../../../../src/domain/model'
+import type {
+  BondsParams,
+  DebtPaydownParams,
+  Loan,
+  StrategyParams,
+} from '../../../../src/domain/model'
 import { roundToExponent, type MonthIndex } from '../../../../src/domain/shared'
 import { zeroTax } from '../../../../src/domain/taxes'
 
@@ -423,5 +431,262 @@ describe('debtPaydownEngine', () => {
     expect(debtPaydownEngine.onRebalance(state, ctx(debtParams, 0))).toBe(state)
     expect(debtPaydownEngine.onYearEnd(state, ctx(debtParams, 0)).state).toBe(state)
     expect(initialState().cash).toBe(0)
+  })
+
+  function loan(over: Partial<Loan> & Pick<Loan, 'id' | 'principal' | 'annualRate'>): Loan {
+    return {
+      nameKey: `loan.${over.id}`,
+      kind: 'installment',
+      currency: 'EUR',
+      system: 'french',
+      termMonths: 120,
+      startMonth: 0,
+      earlyExitPenaltyRate: 0,
+      interestDeductible: false,
+      ...over,
+    }
+  }
+
+  /** Prestamos de la cartera: uno barato y grande, uno caro y pequeno, la hipoteca. */
+  const CAR_A = loan({ id: 'carA', principal: 30000, annualRate: 0.03, termMonths: 120 })
+  const CAR_B = loan({
+    id: 'carB',
+    principal: 5000,
+    annualRate: 0.09,
+    termMonths: 60,
+    earlyExitPenaltyRate: 0.005,
+  })
+  const HIPO = loan({
+    id: 'hipo',
+    principal: 200000,
+    annualRate: 0.045,
+    termMonths: 360,
+    kind: 'mortgage',
+    interestDeductible: true,
+  })
+
+  function debtOf(
+    loanIds: string[],
+    over: Partial<Omit<DebtPaydownParams, 'type' | 'loanIds'>> = {},
+  ): StrategyParams {
+    return {
+      type: 'debtPaydown',
+      loanIds,
+      order: 'avalanche',
+      goal: 'shortenTerm',
+      hurdleRate: 0,
+      ...over,
+    }
+  }
+
+  function debtCtx(
+    params: StrategyParams,
+    monthIndex: number,
+    contribution: number,
+    loans: readonly Loan[],
+  ): EngineContext {
+    return {
+      ...ctx(params, monthIndex, contribution),
+      scenario: { loans, startYear: 2026, startMonth: 1, baseCurrency: 'EUR' } as never,
+    }
+  }
+
+  /**
+   * Un mes completo en el orden real del motor: aportar, y despues cerrar el
+   * mes. Asignar el aporte al final daria el mismo resultado, porque
+   * `onMonthEnd` no mira la aportacion, pero leerlo asi evita depender de que
+   * `ctx.month.contribution` valga 0 en la segunda llamada.
+   */
+  function runMonth(
+    params: StrategyParams,
+    loans: readonly Loan[],
+    monthIndex: number,
+    contribution: number,
+    from?: EngineState,
+  ) {
+    const funding = debtCtx(params, monthIndex, contribution, loans)
+    const funded = debtPaydownEngine.onContribution(
+      from ?? debtPaydownEngine.init(funding),
+      funding,
+    )
+    return debtPaydownEngine.onMonthEnd(funded, debtCtx(params, monthIndex, 0, loans))
+  }
+
+  const balance = (state: EngineState, id: string): number =>
+    state.scratch[`debt.${id}.balance`] ?? 0
+  const quota = (state: EngineState, id: string): number => state.scratch[`debt.${id}.payment`] ?? 0
+  const bonus = (state: EngineState, id: string): number => state.scratch[`debt.${id}.penalty`] ?? 0
+
+  it('la cuota inicial sale de la amortizacion francesa y el adeudado es la suma', () => {
+    const params = debtOf(['carA', 'carB', 'hipo'])
+    const state = debtPaydownEngine.init(debtCtx(params, 0, 0, [CAR_A, CAR_B, HIPO]))
+    expect(quota(state, 'hipo')).toBe(1013.37)
+    expect(quota(state, 'carA')).toBe(289.68)
+    expect(quota(state, 'carB')).toBe(103.79)
+    expect(state.scratch['debt.outstanding']).toBe(235000)
+  })
+
+  it('un prestamo que ya ha terminado su plazo se paga entero y no genera interes ahorrado', () => {
+    // Plazo y fecha de inicio coinciden: no queda ni un mes, asi que la cuota
+    // es el capital y no hay contrato al que ahorrarse interes.
+    const zapata = loan({
+      id: 'zapata',
+      principal: 12000,
+      annualRate: 0.06,
+      termMonths: 12,
+      startMonth: 12,
+    })
+    const params = debtOf(['zapata'])
+    const loans = [zapata]
+    const state = debtPaydownEngine.init(debtCtx(params, 0, 0, loans))
+    expect(quota(state, 'zapata')).toBe(12000)
+
+    // Antes de empezar no paga nada.
+    const before = runMonth(params, loans, 0, 0, state)
+    expect(balance(before.state, 'zapata')).toBe(12000)
+    expect(before.state.cash).toBe(0)
+
+    const first = runMonth(params, loans, 12, 0, before.state)
+    expect(balance(first.state, 'zapata')).toBe(60)
+
+    const closed = runMonth(params, loans, 13, 0, first.state)
+    expect(balance(closed.state, 'zapata')).toBe(0)
+    expect(closed.state.scratch['debt.zapata.interestSaved']).toBe(0)
+    expect(closed.state.scratch['debt.zapata.closedMonth']).toBe(13)
+  })
+
+  it('avalanche va al mas caro y snowball al mas pequeno', () => {
+    const loans = [HIPO, CAR_A, CAR_B]
+    expect(orderLoans(loans, 'avalanche').map((l) => l.id)).toEqual(['carB', 'hipo', 'carA'])
+    expect(orderLoans(loans, 'snowball').map((l) => l.id)).toEqual(['carB', 'carA', 'hipo'])
+    expect(loans.map((l) => l.id)).toEqual(['hipo', 'carA', 'carB'])
+  })
+
+  it('el desempate solo decide cuando la clave principal deja empate', () => {
+    const barato = loan({ id: 'barato', principal: 1000, annualRate: 0.05 })
+    const caro = loan({ id: 'caro', principal: 2000, annualRate: 0.05 })
+    expect(orderLoans([caro, barato], 'avalanche').map((l) => l.id)).toEqual(['barato', 'caro'])
+
+    const barato2 = loan({ id: 'barato2', principal: 5000, annualRate: 0.02 })
+    const caro2 = loan({ id: 'caro2', principal: 5000, annualRate: 0.08 })
+    expect(orderLoans([barato2, caro2], 'snowball').map((l) => l.id)).toEqual(['caro2', 'barato2'])
+  })
+
+  it('el liston deja fuera del aporte extra a los prestamos que no lo superan', () => {
+    const loans = [CAR_B, CAR_A]
+    expect(loansAboveHurdle(loans, 0).map((l) => l.id)).toEqual(['carB', 'carA'])
+    expect(loansAboveHurdle(loans, 0.05).map((l) => l.id)).toEqual(['carB'])
+    expect(loansAboveHurdle(loans, 0.99)).toEqual([])
+  })
+
+  it('con el liston por encima de la tasa el prestamo se sigue pagando pero no se adelanta', () => {
+    const params = debtOf(['carB'], { hurdleRate: 0.5 })
+    const { state } = runMonth(params, [CAR_B], 0, 1000)
+    expect(balance(state, 'carB')).toBe(4933.71)
+    expect(state.cash).toBe(896.21)
+    expect(bonus(state, 'carB')).toBe(0)
+  })
+
+  it('el sobrante se aplica al prestamo mas caro, y el resto a la cuenta', () => {
+    const params = debtOf(['carB'])
+    const { state } = runMonth(params, [CAR_B], 0, 1000)
+    expect(balance(state, 'carB')).toBe(4037.5)
+    expect(bonus(state, 'carB')).toBe(4.48)
+    // El bonus sale del efectivo despues de amortizar, asi que puede dejarlo
+    // en negativo: la aportacion cubria 1000 y el prestamo gastado 1004.48.
+    expect(state.cash).toBeCloseTo(-4.48, 5)
+  })
+
+  it('las cuotas que no cubren la aportacion salen del patrimonio, no de la nada', () => {
+    const params = debtOf(['carA', 'carB', 'hipo'])
+    const { state } = runMonth(params, [CAR_A, CAR_B, HIPO], 0, 1000)
+    // 1000 de aporte frente a 1406.84 de cuota mensual: el desajuste es real.
+    expect(state.cash).toBeCloseTo(-406.84, 5)
+    expect(balance(state, 'hipo')).toBe(199736.63)
+    expect(balance(state, 'carA')).toBe(29785.32)
+    expect(balance(state, 'carB')).toBe(4933.71)
+  })
+
+  it('el interes de hipoteca deducible se declara como hecho imponible', () => {
+    const params = debtOf(['hipo'], { hurdleRate: 0.5 })
+    const { events, state } = runMonth(params, [HIPO], 0, 2000)
+    expect(events).toEqual([{ kind: 'mortgageInterestRelief', gross: 750 }])
+    expect(state.cash).toBe(986.63)
+  })
+
+  it('un prestamo corriente no genera relief, ni aunque se amortice por adelantado', () => {
+    const params = debtOf(['carA'])
+    const { events } = runMonth(params, [CAR_A], 0, 2000)
+    expect(events).toEqual([])
+  })
+
+  it('reducePayment abarata la cuota y shortenTerm la deja igual', () => {
+    const loans = [HIPO]
+    const reduce = runMonth(debtOf(['hipo'], { goal: 'reducePayment' }), loans, 0, 5000)
+    // Se adelantan 3986.63 y la cuota se recalcula sobre el plazo que queda.
+    expect(balance(reduce.state, 'hipo')).toBe(195750)
+    expect(quota(reduce.state, 'hipo')).toBe(991.84)
+    expect(reduce.state.cash).toBe(0)
+
+    const shorten = runMonth(debtOf(['hipo'], { goal: 'shortenTerm' }), loans, 0, 5000)
+    expect(balance(shorten.state, 'hipo')).toBe(195750)
+    expect(quota(shorten.state, 'hipo')).toBe(1013.37)
+  })
+
+  it('un cierre por adelantado se informa con el mes, el interes ahorrado y el bonus', () => {
+    const params = debtOf(['carB'])
+    const loans = [CAR_B]
+    const { state } = runMonth(params, loans, 0, 10000)
+
+    expect(balance(state, 'carB')).toBe(0)
+    expect(state.cash).toBe(4937.83)
+    expect(bonus(state, 'carB')).toBe(24.67)
+    expect(state.scratch['debt.closedCount']).toBe(1)
+
+    const report = debtPaydownEngine.report?.(state, debtCtx(params, 0, 0, loans), [])
+    expect(report?.finalDebtBalance).toBe(0)
+    expect(report?.closedLoans).toHaveLength(1)
+    const [closed] = report?.closedLoans ?? []
+    expect(closed?.loanId).toBe('carB')
+    expect(closed?.loanNameKey).toBe('loan.carB')
+    expect(closed?.monthIndex).toBe(0)
+    // 1227.4 de interes contractual menos los 37.5 del primer mes.
+    expect(closed?.interestSaved).toBe(1189.9)
+    expect(closed?.penalty).toBe(24.67)
+
+    // Al mes siguiente ya no hay nada que cobrar ni que declarar.
+    const after = runMonth(params, loans, 1, 0, state)
+    expect(after.events).toEqual([])
+    expect(after.state.cash).toBe(4937.83)
+  })
+
+  it('el informe no inventa cierres para prestamos sin saldo registrado', () => {
+    const params = debtOf(['carB'])
+    const report = debtPaydownEngine.report?.(initialState(), debtCtx(params, 0, 0, [CAR_B]), [])
+    expect(report?.closedLoans).toEqual([])
+    expect(report?.finalDebtBalance).toBe(0)
+  })
+
+  it('cuenta como saldados los prestamos sin saldo, tb los que no estan', () => {
+    const state: EngineState = { ...initialState(), scratch: { 'debt.carA.balance': 4933.71 } }
+    expect(closedLoanIds(state, [CAR_A, CAR_B])).toEqual(['carB'])
+  })
+
+  it('el inicio de mes no toca el estado y el valor es el efectivo mas la posicion', () => {
+    const params = debtOf(['carB'])
+    const loans = [CAR_B]
+    const state = debtPaydownEngine.init(debtCtx(params, 0, 0, loans))
+    expect(debtPaydownEngine.onMonthStart(state, debtCtx(params, 0, 0, loans))).toBe(state)
+
+    const { state: after } = runMonth(params, loans, 0, 10000)
+    expect(debtPaydownEngine.value(after)).toBe(4937.83)
+  })
+
+  it('el motor de deuda avisa si le llegan parametros de otra estrategia', () => {
+    const params = debtOf(['carB'])
+    const state = debtPaydownEngine.init(debtCtx(params, 0, 0, [CAR_B]))
+    expect(() => debtPaydownEngine.onMonthEnd(state, debtCtx(cashParams, 0, 0, [CAR_B]))).toThrow(
+      /"cash"/,
+    )
   })
 })
