@@ -325,8 +325,7 @@ ejecutara en un Web Worker, con fallback sincrono (pasos 13 y 16).
 
 ## 4. CI / CD (`.github/workflows/ci.yml`)
 
-Estado real: dos jobs, `quality` y `deploy`. El job `e2e` todavía no existe (ver
-más abajo por qué).
+Estado real: tres jobs, `quality` ‖ `e2e` → `deploy`.
 
 ```yaml
 name: CI
@@ -352,12 +351,33 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm run test:coverage
+      - run: npm run test:coverage       # packages/core, con umbrales
+      - run: npm run test:web            # apps/web, unitarios (jsdom)
       - run: npm run build
 
-  deploy:                        # gate: main + push + quality en verde
+  e2e:                            # Playwright, se solapa con quality
+    permissions: { contents: read }
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: corepack enable
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npm run test:e2e
+        env:
+          VITE_BASE_PATH: /investing-helper/   # el mismo base que `deploy`
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright-report, path: apps/web/playwright-report }
+
+  deploy:                        # gate: main + push + quality y e2e en verde
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [quality]
+    needs: [quality, e2e]
     permissions:
       pages: write                # ← a nivel de job, minimo privilegio
       id-token: write
@@ -393,13 +413,12 @@ Detalles que importan:
   todo lo que no esté listado.
 - Tras el merge: Settings → Pages → Source: **GitHub Actions**.
 - `dependabot.yml`: npm y github-actions, semanal.
-
-**`e2e` pendiente**: un `playwright test` sin specs ni `playwright.config.ts`
-sale con código 1 y dejaría el pipeline rojo sin motivo, así que el job se añade
-junto con los primeros specs (paso 17). Cuando se añada, tiene que construir con
-el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
-`vite preview` sobre ese build: si el preview usa base `/` y el deploy
-`/<repo>/`, los tests pasan en local y rompen en GitHub Pages.
+- `e2e` sí usa `VITE_BASE_PATH` literal (`/investing-helper/`), a diferencia de
+  `deploy`: `configure-pages` no está disponible fuera del job de despliegue.
+  `apps/web/playwright.config.ts` construye `dist/` y lo sirve con
+  `vite preview` sobre ese mismo base — si el preview sirviera en `/` y el
+  deploy en `/investing-helper/`, los tests pasarían en local y romperían en
+  GitHub Pages. Si el repo cambia de nombre, hay que tocar los dos sitios.
 
 ---
 
@@ -451,15 +470,18 @@ el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
     inline. Hoy `compareStrategies` corre siempre en el hilo principal: para
     el tamaño de escenario actual es instantáneo, así que esto es una
     optimización cuando haga falta, no un bloqueante.
-17. **E2E**: specs de Playwright (smoke + biblioteca de escenarios) y el job
-    `e2e` en la CI.
+17. ▶ **E2E**: hecho `playwright.config.ts` y `e2e/smoke.spec.ts` (carga el
+    comparador, ve una recomendación real, cambia de pestaña) y el job `e2e`
+    en la CI, que ahora bloquea `deploy`. Falta el spec de la biblioteca de
+    escenarios, que necesita la pestaña de Escenarios (paso 15).
 18. ✅ **Deploy**: repo público, Settings → Pages → Source: GitHub Actions
     activado. El job `deploy` corre en cada push a `main`.
 
-Los pasos 1–13 y el 18 ya están sobre `main`, y los pasos 14 y 15 tienen la
-pestaña Comparador funcionando de verdad (con el escenario por defecto) y el
-resto de pestañas como aviso honesto de "no construida todavía". Este
-documento se actualiza según avanza el resto.
+Los pasos 1–13 y el 18 ya están sobre `main`, y los pasos 14, 15 y 17 tienen su
+primera parte hecha: la pestaña Comparador funciona de verdad (con el
+escenario por defecto), tiene su smoke test de Playwright, y el resto de
+pestañas avisan honestamente que no están construidas todavía. Este documento
+se actualiza según avanza el resto.
 
 ---
 

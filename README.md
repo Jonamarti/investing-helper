@@ -29,9 +29,9 @@ todavía no existen. El detalle de qué hay hecho está en
 - TypeScript, en un monorepo de npm workspaces (`packages/core` + `apps/web`)
 - `packages/core`: motor puro, sin dependencias en tiempo de ejecución
 - `apps/web`: React 19 + Vite 8 + Tailwind 4 + Recharts
-- Tests: Vitest + fast-check (property-based) en el motor, Playwright pendiente
-  para E2E
-- CI: GitHub Actions → GitHub Pages
+- Tests: Vitest + fast-check (property-based) en el motor, Vitest (jsdom) en la
+  infraestructura y la UI, Playwright para E2E
+- CI: GitHub Actions (`quality` ‖ `e2e` → `deploy`) → GitHub Pages
 
 ## Requisitos
 
@@ -73,11 +73,12 @@ dependencia entre capas y cómo añadir una estrategia nueva.
 
 ## Despliegue
 
-La CI (`.github/workflows/ci.yml`) tiene dos jobs: `quality` (lint, tipos,
-tests, build) en cada push y pull request, y `deploy` — que solo corre en
-`main` y solo si `quality` pasó — que publica `apps/web/dist` en GitHub Pages.
-El `base` de Vite sale de `VITE_BASE_PATH`, que pone `configure-pages` a partir
-del nombre real del repositorio: renombrar el repo no rompe el build.
+La CI (`.github/workflows/ci.yml`) tiene tres jobs: `quality` (lint, tipos,
+tests, build) y `e2e` (Playwright) en cada push y pull request, y `deploy` —
+que solo corre en `main` y solo si los otros dos pasaron — que publica
+`apps/web/dist` en GitHub Pages. El `base` de Vite sale de `VITE_BASE_PATH`,
+que pone `configure-pages` a partir del nombre real del repositorio: renombrar
+el repo no rompe el build.
 
 El repositorio ya es público y Settings → Pages → Source está en **GitHub
 Actions**: el job `deploy` corre en cada push a `main` sin pasos manuales

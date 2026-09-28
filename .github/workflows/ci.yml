@@ -31,19 +31,35 @@ jobs:
       - run: npm run test:web
       - run: npm run build
 
-  # El job `e2e` entra aqui en la fase de E2E, cuando existan los specs y el
-  # playwright.config.ts.hasta entonces no esta: un `playwright test` sin tests
-  # sale con codigo 1 y dejaria el pipeline rojo sin motivo.
-  #
-  # Cuando se anada, tiene que construir con el MISMO base que produccion:
-  #   VITE_BASE_PATH: /<repo>/
-  # y arrancar `vite preview`, que sirve dist/ con ese prefijo. Si el preview
-  # usa base "/" y el deploy "/repo/", los tests pasan en local y rompen en
-  # GitHub Pages.
+  e2e:
+    permissions: { contents: read }
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: corepack enable
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npm run test:e2e
+        env:
+          # El mismo base que usa `deploy`: si aqui es "/" y en Pages
+          # "/investing-helper/", los tests pasan en local y rompen alli.
+          # A diferencia de `deploy`, `configure-pages` no esta disponible
+          # aqui, asi que va literal; si el repo cambia de nombre, tocan los dos.
+          VITE_BASE_PATH: /investing-helper/
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [quality]
+    needs: [quality, e2e]
     permissions:
       # A nivel de job: especificar `permissions` revoca todo lo no listado.
       pages: write
