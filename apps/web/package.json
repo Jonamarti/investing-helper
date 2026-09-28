@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@investing-helper/core": "*",
-    "fflate": "^0.8.3",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "recharts": "^3.10.1",
