@@ -1,4 +1,5 @@
 import { ComparisonTab } from '../ui/features/comparison/ComparisonTab'
+import { DebtsTab } from '../ui/features/debts/DebtsTab'
 import { ScenariosTab } from '../ui/features/scenarios/ScenariosTab'
 import { DEFAULT_LOCALE, LocaleContext, useTranslation } from '../ui/i18n'
 import { DEFAULT_TAB, useHashTab } from './hashRouter'
@@ -24,8 +25,9 @@ function TabContent({ tab }: { readonly tab: string }) {
       return <ComparisonTab />
     case 'scenarios':
       return <ScenariosTab />
-    case 'assumptions':
     case 'debts':
+      return <DebtsTab />
+    case 'assumptions':
     case 'contributions':
     case 'montecarlo':
       return <ComingSoon />

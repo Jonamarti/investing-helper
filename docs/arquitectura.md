@@ -112,8 +112,9 @@ randomMonthlyReturn` es el punto de enganche con el motor: si una
 - **`apps/web/src/ui`**: componentes React, formularios generados desde
   `ParamSpec` (pendiente: `FieldRenderer`), gráficos y las pestañas de la app.
   Hechas `features/comparison` (recomendación, ranking, gráfico Recharts,
-  cruces) y `features/scenarios` (biblioteca: guardar, cargar, renombrar,
-  duplicar, borrar, exportar/importar JSON), las dos sobre
+  cruces), `features/scenarios` (biblioteca: guardar, cargar, renombrar,
+  duplicar, borrar, exportar/importar JSON) y `features/debts` (alta, edición y
+  borrado de `Loan`, forma fija así que sin `FieldRenderer`), todas sobre
   `store/scenarioStore.ts` (zustand) e `i18n/` (ES/EN). `scenarioStore.ts` es
   la única pieza de `ui/**` que toca `infrastructure/persistence` además de
   `application`: es la frontera entre el resto de la UI y dónde vive el

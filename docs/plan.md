@@ -461,11 +461,15 @@ Detalles que importan:
     escenario). Falta `FieldRenderer` y los campos genericos, que hacen falta
     para las pestañas que editan parametros (Supuestos, Deudas, ...).
 15. ▶ **Web/pestañas**: ✅ **Comparador** (recomendación, ranking, gráfico
-    nominal + poder de compra con Recharts, cruces) y ✅ **Escenarios**
+    nominal + poder de compra con Recharts, cruces), ✅ **Escenarios**
     (biblioteca sobre `LocalStorageScenarioRepo`: guardar, cargar, renombrar,
-    duplicar, borrar, exportar/importar JSON). Supuestos, Deudas,
-    Aportaciones y Monte Carlo son un aviso de "todavía no construida":
-    necesitan `FieldRenderer`, que es más trabajo que una tabla y un gráfico.
+    duplicar, borrar, exportar/importar JSON) y ✅ **Deudas** (alta, edición y
+    borrado de préstamos: `kind`, divisa, capital, tipo, plazo, sistema de
+    amortización, mes de inicio, penalización y deducibilidad — forma fija de
+    `Loan`, sin necesitar `FieldRenderer`). Supuestos, Aportaciones y Monte
+    Carlo son un aviso de "todavía no construida": los parámetros de estrategia
+    (`StrategyParams`, una unión discriminada) sí necesitan `FieldRenderer`
+    sobre `ParamSpec`, que es más trabajo que un formulario de forma fija.
 16. **Web/rendimiento**: `workerRunner` y `simulate.worker.ts` con fallback
     inline. Hoy `compareStrategies` corre siempre en el hilo principal: para
     el tamaño de escenario actual es instantáneo, así que esto es una
@@ -477,10 +481,10 @@ Detalles que importan:
 18. ✅ **Deploy**: repo público, Settings → Pages → Source: GitHub Actions
     activado. El job `deploy` corre en cada push a `main`.
 
-Los pasos 1–13, 17 y 18 ya están sobre `main`, y los pasos 14 y 15 tienen sus
-dos primeras pestañas (Comparador y Escenarios) funcionando de verdad. El
-resto de pestañas avisan honestamente que no están construidas todavía, en vez
-de fingirlo. Este documento se actualiza según avanza el resto.
+Los pasos 1–13, 17 y 18 ya están sobre `main`, y los pasos 14 y 15 tienen tres
+pestañas (Comparador, Escenarios y Deudas) funcionando de verdad. El resto
+avisa honestamente que no está construido todavía, en vez de fingirlo. Este
+documento se actualiza según avanza el resto.
 
 ---
 
