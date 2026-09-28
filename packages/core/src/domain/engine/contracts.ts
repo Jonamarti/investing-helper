@@ -1,4 +1,4 @@
-import type { Money, MonthIndex } from '../shared'
+import type { Money, MonthIndex, Rate } from '../shared'
 import type { Scenario, StrategyParams, StrategyType } from '../model'
 import type { TaxableEvent, TaxableEventKind } from '../taxes'
 
@@ -31,6 +31,14 @@ export interface MonthContext {
   readonly contributionLumpSum: Money
   /** Sueldo libre de este mes, ya con pagas extra y crecimiento. */
   readonly freeSalary: Money
+  /**
+   * Rentabilidad mensual de este mes para una trayectoria Monte Carlo, si la
+   * simulacion la trae (ver `domain/montecarlo` y `SimulationOptions`).
+   * `undefined` en la simulacion determinista: cada estrategia usa entonces su
+   * `expectedReturn`/`annualRate` de siempre. Ninguna estrategia esta obligada a
+   * leerlo; hoy solo lo usa la de renta variable.
+   */
+  readonly randomMonthlyReturn?: Rate
 }
 
 /** Acumulado del año en curso, para la liquidacion anual de impuestos. */

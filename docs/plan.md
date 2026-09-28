@@ -304,12 +304,22 @@ ejemplo `[7, 12]` para 14 pagas). Los **overrides** son un
 
 ### 3.8 Monte Carlo
 
-`runMonteCarlo(scenario, strategy, { paths: 1000, seed })` devuelve
+`domain/montecarlo` ya existe: `sampleGbmPath` genera una trayectoria de
+rentabilidades mensuales GBM a partir de un generador uniforme inyectado (puro,
+sin `Math.random`), y `EngineContext.month.randomMonthlyReturn` es el enganche
+con el simulador — hoy solo lo lee la renta variable, que lo usa en vez de
+`expectedReturn` ese mes. `percentilesOf`/`probabilityAbove`/
+`probabilityPairwiseAbove` agregan el resultado de varias trayectorias.
+
+Falta el caso de uso `runMonteCarlo(scenario, strategy, { paths: 1000, seed })`
+(paso 12, `application/usecases/`) que genere las `paths` semillas con
+`IRandomSource`, llame a `simulate(...)` una vez por trayectoria con
+`randomMonthlyReturnFor`, y devuelva
 `{ p5, p25, p50, p75, p95, probBeatsBest, probBeatsInflation, finalValues[] }`.
-**La semilla es visible y editable** en la pestaña de Supuestos
-(`MonteCarloSettings.seed`) y se guarda con el escenario, no en la URL: con la
-misma semilla y los mismos parámetros, el resultado es idéntico. Se ejecuta en
-un Web Worker, con fallback síncrono.
+**La semilla sera visible y editable** en la pestaña de Supuestos
+(`MonteCarloSettings.seed`) y se guardara con el escenario, no en la URL: con
+la misma semilla y los mismos parametros, el resultado es identico. Se
+ejecutara en un Web Worker, con fallback sincrono (pasos 13 y 16).
 
 ---
 
@@ -410,8 +420,10 @@ el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
    conservación de capital y de rendimiento.
 9. ✅ **Core/taxes**: motor y presets.
 10. ✅ **Core/analytics**: real, irr, metrics, ranking, crossovers, recommendation.
-11. ▶ **Core/montecarlo**: sampler, aggregate, y test de reproducibilidad con semilla.
-12. **Core/application**: `ports`, `dto`, `usecases` + validación + tests
+11. ✅ **Core/montecarlo**: sampler (GBM), aggregate (percentiles, probabilidades)
+    y `EngineContext.month.randomMonthlyReturn`, que la renta variable usa en
+    vez de `expectedReturn` cuando la simulación trae una trayectoria.
+12. ▶ **Core/application**: `ports`, `dto`, `usecases` + validación + tests
     property-based con fast-check, golden files, y cobertura ≥ 90 % en core.
 13. **Web/infra**: `mulberry32`, repos de localStorage (biblioteca de escenarios
     + import/export), `manualFxProvider`, `container.ts`.
@@ -425,7 +437,7 @@ el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
 18. **Deploy manual**: hacer el repo público y activar Settings → Pages →
     Source: GitHub Actions (ver README).
 
-Los pasos 1–10 ya están sobre `main`; este documento se actualiza según avanza
+Los pasos 1–11 ya están sobre `main`; este documento se actualiza según avanza
 el resto.
 
 ---

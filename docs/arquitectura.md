@@ -54,8 +54,12 @@ regla ya se habría roto antes de que `depcruise` lo detecte.
 - **`domain/analytics`**: métricas derivadas de un `StrategyResult` ya
   simulado — deflactación, TIR, ranking, cruces entre curvas, motor de
   recomendación. No vuelve a simular nada, solo lee `points`/`finalValue`.
-- **`domain/montecarlo`** (pendiente): muestreo GBM y agregados por percentil
-  sobre varias trayectorias.
+- **`domain/montecarlo`**: muestreo GBM (`sampler.ts`, puro: recibe el
+  generador uniforme, no lo crea) y agregados por percentil y probabilidad
+  sobre varias trayectorias (`aggregate.ts`). `EngineContext.month.
+randomMonthlyReturn` es el punto de enganche con el motor: si una
+  simulación lo trae, la renta variable lo usa en vez de `expectedReturn` ese
+  mes; el resto de estrategias lo ignora.
 - **`application`** (pendiente): puertos (`IRandomSource`, `IDateSource`), DTOs
   hacia la UI y los casos de uso (`compareStrategies`, `runMonteCarlo`,
   `validateScenario`) que orquestan el dominio sin añadirle reglas nuevas.

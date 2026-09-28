@@ -1,6 +1,6 @@
 import type { Scenario, StrategyParams } from '../model'
 import { freeMonthlyInMonth, horizonOf, resolveContribution, scenarioExponent } from '../model'
-import { roundToExponent, yearMonthKey, type Money, type MonthIndex } from '../shared'
+import { roundToExponent, yearMonthKey, type Money, type MonthIndex, type Rate } from '../shared'
 import { computeTax } from '../taxes'
 import type {
   EngineContext,
@@ -25,6 +25,12 @@ export interface StrategyInput {
 export interface SimulationOptions {
   /** Cuantos meses simular. Por defecto, el horizonte del escenario. */
   readonly horizonMonths?: number
+  /**
+   * Rentabilidad mensual de una trayectoria Monte Carlo para una estrategia y
+   * mes dados. `undefined` (o sin esta funcion) es la simulacion determinista
+   * de siempre: cada estrategia usa su parametro habitual.
+   */
+  readonly randomMonthlyReturnFor?: (strategyId: string, monthIndex: MonthIndex) => Rate | undefined
 }
 
 export interface SimulationResult {
@@ -49,6 +55,7 @@ function buildMonthContext(
   contribution: ReturnType<typeof resolveContribution>,
   freeSalary: Money,
   rebalanceEveryMonths: number,
+  randomMonthlyReturn: Rate | undefined,
 ): MonthContext {
   // El mes 0 no rebalancea: la cartera acaba de nacer con los pesos objetivo, y
   // "corregir" a si misma no seria mas que ruido (y un redondeo).
@@ -65,6 +72,7 @@ function buildMonthContext(
     contributionRecurring: contribution.recurring,
     contributionLumpSum: contribution.lumpSum,
     freeSalary,
+    ...(randomMonthlyReturn === undefined ? {} : { randomMonthlyReturn }),
   }
 }
 
@@ -105,7 +113,12 @@ function settle(period: TaxablePeriod, taxes: TaxContext, exponent: number): Eng
   return payTax(period.state, computeTax(period.events, taxes.rules, exponent).total, exponent)
 }
 
-function simulateOne(scenario: Scenario, strategy: StrategyInput, horizon: number): StrategyResult {
+function simulateOne(
+  scenario: Scenario,
+  strategy: StrategyInput,
+  horizon: number,
+  randomMonthlyReturnFor: SimulationOptions['randomMonthlyReturnFor'],
+): StrategyResult {
   const engine = resolveEngine(strategy.params.type)
   const exponent = scenarioExponent(scenario)
   const taxes: TaxContext = { rules: scenario.taxRules, exponent }
@@ -120,7 +133,14 @@ function simulateOne(scenario: Scenario, strategy: StrategyInput, horizon: numbe
       scenario.startYear,
       scenario.startMonth,
     )
-    return buildMonthContext(scenario, month, contribution, freeSalary, rebalanceEveryMonths)
+    return buildMonthContext(
+      scenario,
+      month,
+      contribution,
+      freeSalary,
+      rebalanceEveryMonths,
+      randomMonthlyReturnFor?.(strategy.id, month),
+    )
   }
 
   const initial: EngineContext = {
@@ -217,7 +237,9 @@ export function simulate(
 ): SimulationResult {
   const horizon = options.horizonMonths ?? horizonOf(scenario)
   return {
-    results: strategies.map((strategy) => simulateOne(scenario, strategy, horizon)),
+    results: strategies.map((strategy) =>
+      simulateOne(scenario, strategy, horizon, options.randomMonthlyReturnFor),
+    ),
     horizonMonths: horizon,
     exponent: scenarioExponent(scenario),
     startYear: scenario.startYear,

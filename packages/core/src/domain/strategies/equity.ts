@@ -32,9 +32,10 @@ function sellForTax(state: EngineState, amount: Money, exponent: number): Engine
  * Renta variable.
  *
  * Modelo determinista de rentabilidad compuesta: cada mes el valor crece a la
- * tasa mensual equivalente a `expectedReturn`. El GBM con volatilidad vive en
- * Monte Carlo (ver `domain/montecarlo`), que inyecta la serie de rentabilidades
- * en lugar de reimplementar la contabilidad.
+ * tasa mensual equivalente a `expectedReturn`. En una simulacion Monte Carlo,
+ * `ctx.month.randomMonthlyReturn` trae la rentabilidad de esa trayectoria (GBM,
+ * ver `domain/montecarlo`) y sustituye a `expectedReturn` para ese mes: la
+ * contabilidad no cambia, solo la fuente de la rentabilidad.
  *
  * `scratch` guarda la base fiscal de la posicion (`COST_BASIS`): sin ella no se
  * puede calcular la plusvalia al vender ni el impuesto si tributa cada ano.
@@ -66,7 +67,7 @@ export const equityEngine: StrategyEngine = {
   onMonthEnd(state: EngineState, ctx: EngineContext): TaxablePeriod {
     const params = asEquity(ctx.params)
     const { exponent } = ctx.taxes
-    const monthlyRate = annualToMonthly(params.expectedReturn)
+    const monthlyRate = ctx.month.randomMonthlyReturn ?? annualToMonthly(params.expectedReturn)
     const growth = roundToExponent(state.position * monthlyRate, exponent)
     if (growth === 0) {
       return { state, events: [] }

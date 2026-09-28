@@ -13,10 +13,11 @@ repositorio se haga público y se configure Settings → Pages → Source:
 ## Estado actual
 
 El motor de simulación (`packages/core`) tiene el modelo de dominio, la
-amortización, el simulador, las cinco estrategias y el motor fiscal
-implementados y probados. La capa de analítica (TIR, ranking, recomendación)
-está en curso. La aplicación web (`apps/web`) todavía es solo el andamiaje:
-falta toda la UI. El detalle de qué hay hecho está en
+amortización, el simulador, las cinco estrategias, el motor fiscal, la
+analítica (TIR, ranking, recomendación) y Monte Carlo (GBM, percentiles)
+implementados y probados. Falta la capa `application` (casos de uso, DTOs) que
+los conecta con la UI. La aplicación web (`apps/web`) todavía es solo el
+andamiaje: falta toda la interfaz real. El detalle de qué hay hecho está en
 [docs/plan.md, §5](docs/plan.md#5-orden-de-implementación).
 
 ## Stack
@@ -96,5 +97,6 @@ Para que las cifras no se interpreten como más precisas de lo que son:
   PPC ni series históricas.
 - La TIR es money-weighted con flujos mensuales: no modela la secuencia dentro
   del mes ni la reinversión intra-mensual.
-- El Monte Carlo (pendiente) usará GBM lognormal iid: correlaciones, colas
-  gruesas y volatilidad estocástica quedan fuera.
+- El Monte Carlo usa GBM lognormal iid, y solo afecta a la renta variable:
+  correlaciones entre activos, colas gruesas y volatilidad estocástica quedan
+  fuera del modelo.

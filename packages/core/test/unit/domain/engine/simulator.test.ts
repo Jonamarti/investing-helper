@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
   defaultScenario,
   registerAllEngines,
+  roundToExponent,
+  simulate,
   simulateScenario,
   zeroTax,
   type Scenario,
@@ -73,6 +75,42 @@ describe('simulador', () => {
 
     expect(equity.finalValue).toBeGreaterThan(cash.finalValue)
     expect(cash.finalValue).toBeGreaterThan(bonds.finalValue)
+  })
+
+  it('randomMonthlyReturnFor sustituye la rentabilidad de la renta variable, mes a mes', () => {
+    const scenario = defaultScenario()
+    const equityInput = {
+      id: 'eq',
+      labelKey: 'strategy.equity.label',
+      params: scenario.strategies.find((p) => p.type === 'equity')!,
+    }
+    // Una rentabilidad mensual fija y muy alta, distinta del expectedReturn del
+    // escenario por defecto: si el resultado cuadra con ella, el hook llega al
+    // motor en cada mes, no solo al primero.
+    const fixedMonthlyReturn = 0.05
+    const { results } = simulate(scenario, [equityInput], {
+      horizonMonths: 6,
+      randomMonthlyReturnFor: () => fixedMonthlyReturn,
+    })
+    const [result] = results
+    let position = 0
+    for (const point of result!.points) {
+      // Misma secuencia de redondeo que el motor: aportar (redondeado) y luego
+      // devengar sobre el saldo ya redondeado (redondeado otra vez).
+      position = roundToExponent(position + point.contribution, 2)
+      position = roundToExponent(position + roundToExponent(position * fixedMonthlyReturn, 2), 2)
+      expect(point.value).toBe(position)
+    }
+  })
+
+  it('si randomMonthlyReturnFor devuelve undefined, esa estrategia sigue siendo determinista', () => {
+    const scenario = defaultScenario()
+    const withHook = simulateScenario(scenario, {
+      horizonMonths: 12,
+      randomMonthlyReturnFor: () => undefined,
+    })
+    const withoutHook = simulateScenario(scenario, { horizonMonths: 12 })
+    expect(withHook.results).toEqual(withoutHook.results)
   })
 
   it('el efectivo produce exactamente el interes pactado cada mes', () => {

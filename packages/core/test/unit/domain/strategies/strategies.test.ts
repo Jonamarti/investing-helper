@@ -213,6 +213,20 @@ describe('bondsEngine', () => {
 })
 
 describe('equityEngine', () => {
+  it('con randomMonthlyReturn, una trayectoria Monte Carlo sustituye a expectedReturn', () => {
+    const withRandom: EngineContext = {
+      ...ctx(equityParams, 0),
+      month: { ...ctx(equityParams, 0).month, randomMonthlyReturn: 0.1 },
+    }
+    const state = equityEngine.onContribution(
+      equityEngine.init(ctx(equityParams, 0)),
+      ctx(equityParams, 0, 1000),
+    )
+    const period = equityEngine.onMonthEnd(state, withRandom)
+    // 10 % de golpe, muy por encima del 12 % anual (~0.95 % mensual) de expectedReturn.
+    expect(period.state.position).toBe(1100)
+  })
+
   it('no devenga con rentabilidad cero', () => {
     const zero: StrategyParams = { type: 'equity', expectedReturn: 0, gainTaxMode: 'onExit' }
     const state = equityEngine.onContribution(equityEngine.init(ctx(zero, 0)), ctx(zero, 0, 1000))
