@@ -18,10 +18,10 @@ test('cambiar a una pestaña sin construir actualiza el hash y avisa', async ({ 
   await page.goto('/')
   await expect(page.getByText(/es la mejor opción/)).toBeVisible()
 
-  await page.getByRole('button', { name: 'Aportaciones' }).click()
+  await page.getByRole('button', { name: 'Monte Carlo' }).click()
 
   await expect(page.getByText(/todavía no está construida/)).toBeVisible()
-  await expect(page).toHaveURL(/#\/contributions$/)
+  await expect(page).toHaveURL(/#\/montecarlo$/)
 })
 
 test('la pestaña de Escenarios guarda el escenario activo en la biblioteca', async ({ page }) => {

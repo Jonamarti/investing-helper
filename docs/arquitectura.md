@@ -122,11 +122,12 @@ randomMonthlyReturn` es el punto de enganche con el motor: si una
   ranking, gráfico Recharts, cruces), `features/scenarios` (biblioteca:
   guardar, cargar, renombrar, duplicar, borrar, exportar/importar JSON),
   `features/debts` (alta, edición y borrado de `Loan`, forma fija así que sin
-  `FieldRenderer`) y `features/assumptions` (inflación, horizonte, ajustes de
+  `FieldRenderer`), `features/assumptions` (inflación, horizonte, ajustes de
   Monte Carlo, y la lista de estrategias — con `FieldRenderer` para sus
   parámetros, el checklist de préstamos de una estrategia de amortizar deuda,
-  y `ParamsForm` anidado para los componentes de una cartera mixta), todas
-  sobre `store/scenarioStore.ts` (zustand) e `i18n/` (ES/EN).
+  y `ParamsForm` anidado para los componentes de una cartera mixta) y
+  `features/contributions` (nómina y plan de aportaciones, forma fija como
+  `Loan`), todas sobre `store/scenarioStore.ts` (zustand) e `i18n/` (ES/EN).
   `scenarioStore.ts` es la única pieza de `ui/**` que toca
   `infrastructure/persistence` además de `application`: es la frontera entre
   el resto de la UI y dónde vive el escenario, no algo que cada componente

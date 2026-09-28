@@ -139,4 +139,26 @@ export const en: Readonly<Record<string, string>> = {
   'assumptions.strategies.mixed.remove': 'Remove',
   'assumptions.strategies.mixed.weight.label': 'Weight',
   'assumptions.strategies.mixed.kind.label': 'Kind',
+
+  'contributions.salary.title': 'Salary',
+  'contributions.salary.netMonthly.label': 'Net monthly pay',
+  'contributions.salary.fixedCostsMonthly.label': 'Fixed monthly costs',
+  'contributions.salary.extraPayMonths.label': 'Extra pay months',
+  'contributions.salary.growthAnnual.label': 'Annual growth',
+  'contributions.salary.employeeContributionRate.label': 'Employee contribution rate',
+
+  'contributions.plan.title': 'Contribution plan',
+  'contributions.plan.currency.label': 'Currency',
+  'contributions.plan.initialLumpSum.label': 'Initial lump sum',
+  'contributions.plan.savingsRate.label': 'Savings rate on free income',
+  'contributions.plan.followSalary.label': 'Monthly contribution follows free income',
+  'contributions.plan.fixedMonthly.label': 'Fixed monthly contribution',
+
+  'contributions.overrides.title': 'Manual overrides',
+  'contributions.overrides.empty': 'There are no manual overrides.',
+  'contributions.overrides.add': 'Add override',
+  'contributions.overrides.remove': 'Delete',
+  'contributions.overrides.monthKey.label': 'Month (YYYY-MM)',
+  'contributions.overrides.lumpSum.label': 'One-off contribution',
+  'contributions.overrides.monthlyAmount.label': 'Replace the monthly contribution with',
 }

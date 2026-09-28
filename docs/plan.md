@@ -465,12 +465,16 @@ Detalles que importan:
 15. ▶ **Web/pestañas**: ✅ **Comparador**, ✅ **Escenarios** (biblioteca sobre
     `LocalStorageScenarioRepo`: guardar, cargar, renombrar, duplicar, borrar,
     exportar/importar JSON), ✅ **Deudas** (alta, edición y borrado de
-    préstamos, forma fija de `Loan`) y ✅ **Supuestos** (inflación, horizonte,
+    préstamos, forma fija de `Loan`), ✅ **Supuestos** (inflación, horizonte,
     ajustes de Monte Carlo, y la lista de estrategias a comparar — añadir,
     quitar y editar cada una con `FieldRenderer`, incluida la lista de
     préstamos de una estrategia de amortizar deuda y los componentes de una
-    cartera mixta, anidando `ParamsForm` una vez más). Aportaciones y Monte
-    Carlo siguen siendo un aviso de "todavía no construida".
+    cartera mixta, anidando `ParamsForm` una vez más) y ✅ **Aportaciones**
+    (nómina, plan de aportaciones y correcciones manuales por mes —
+    `Salary`/`ContributionPlan`, forma fija como `Loan`). Solo queda **Monte
+    Carlo**: ejecutar `runMonteCarlo` y ver el resultado, que es distinto de
+    configurarlo (eso ya vive en Supuestos) — sigue como aviso de "todavía no
+    construida".
 16. **Web/rendimiento**: `workerRunner` y `simulate.worker.ts` con fallback
     inline. Hoy `compareStrategies` corre siempre en el hilo principal: para
     el tamaño de escenario actual es instantáneo, así que esto es una
@@ -482,10 +486,11 @@ Detalles que importan:
 18. ✅ **Deploy**: repo público, Settings → Pages → Source: GitHub Actions
     activado. El job `deploy` corre en cada push a `main`.
 
-Los pasos 1–14, 17 y 18 ya están sobre `main`, y el paso 15 tiene cuatro
-pestañas (Comparador, Escenarios, Deudas y Supuestos) funcionando de verdad.
-El resto avisa honestamente que no está construido todavía, en vez de
-fingirlo. Este documento se actualiza según avanza el resto.
+Los pasos 1–14, 17 y 18 ya están sobre `main`, y el paso 15 tiene cinco
+pestañas (Comparador, Escenarios, Deudas, Supuestos y Aportaciones)
+funcionando de verdad. Solo Monte Carlo avisa honestamente que no está
+construida todavía, en vez de fingirlo. Este documento se actualiza según
+avanza el resto.
 
 ---
 

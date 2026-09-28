@@ -147,4 +147,26 @@ export const es: Readonly<Record<string, string>> = {
   'assumptions.strategies.mixed.remove': 'Quitar',
   'assumptions.strategies.mixed.weight.label': 'Peso',
   'assumptions.strategies.mixed.kind.label': 'Tipo',
+
+  'contributions.salary.title': 'Nómina',
+  'contributions.salary.netMonthly.label': 'Neto mensual',
+  'contributions.salary.fixedCostsMonthly.label': 'Gastos fijos mensuales',
+  'contributions.salary.extraPayMonths.label': 'Pagas extra (meses)',
+  'contributions.salary.growthAnnual.label': 'Crecimiento anual',
+  'contributions.salary.employeeContributionRate.label': 'Cotización del trabajador',
+
+  'contributions.plan.title': 'Plan de aportaciones',
+  'contributions.plan.currency.label': 'Divisa',
+  'contributions.plan.initialLumpSum.label': 'Aporte inicial',
+  'contributions.plan.savingsRate.label': 'Ahorro sobre el sueldo libre',
+  'contributions.plan.followSalary.label': 'El aporte mensual sigue al sueldo libre',
+  'contributions.plan.fixedMonthly.label': 'Aporte mensual fijo',
+
+  'contributions.overrides.title': 'Correcciones manuales',
+  'contributions.overrides.empty': 'No hay correcciones manuales.',
+  'contributions.overrides.add': 'Añadir corrección',
+  'contributions.overrides.remove': 'Borrar',
+  'contributions.overrides.monthKey.label': 'Mes (AAAA-MM)',
+  'contributions.overrides.lumpSum.label': 'Aporte puntual',
+  'contributions.overrides.monthlyAmount.label': 'Sustituye el aporte mensual por',
 }

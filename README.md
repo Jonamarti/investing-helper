@@ -9,9 +9,11 @@ libre mensual.
 pestaña Comparador funcionando sobre el escenario por defecto (recomendación,
 ranking, gráfico de patrimonio nominal y poder de compra, cruces entre
 estrategias), Escenarios (guardar/cargar/duplicar/exportar), Deudas (alta y
-edición de préstamos) y Supuestos (inflación, horizonte, Monte Carlo y qué
-estrategias comparar, con todos sus parámetros); el resto es un aviso de
-"todavía no construida", ver [Estado actual](#estado-actual).
+edición de préstamos), Supuestos (inflación, horizonte, Monte Carlo y qué
+estrategias comparar, con todos sus parámetros) y Aportaciones (nómina y plan
+de aportaciones); solo falta ejecutar Monte Carlo y ver el resultado, que
+avisa honestamente de "todavía no construida", ver
+[Estado actual](#estado-actual).
 
 ## Estado actual
 
@@ -24,9 +26,9 @@ infraestructura (`localStorage`, RNG con semilla), un shell real (hash router,
 i18n ES/EN, store de zustand) y un `FieldRenderer` genérico que recorre el
 catálogo declarativo de `ParamSpec` del dominio para generar formularios sin
 conocer las estrategias. Con eso, las pestañas **Comparador**, **Escenarios**,
-**Deudas** y **Supuestos** están completas. Aportaciones y Monte Carlo
-(ejecutarlo y ver el resultado, que es distinto de configurarlo) todavía no
-existen. El detalle de qué hay hecho está en
+**Deudas**, **Supuestos** y **Aportaciones** están completas. Solo falta
+**Monte Carlo**: ejecutarlo y ver el resultado (los ajustes ya se editan en
+Supuestos). El detalle de qué hay hecho está en
 [docs/plan.md, §5](docs/plan.md#5-orden-de-implementación).
 
 ## Stack

@@ -1,5 +1,6 @@
 import { AssumptionsTab } from '../ui/features/assumptions/AssumptionsTab'
 import { ComparisonTab } from '../ui/features/comparison/ComparisonTab'
+import { ContributionsTab } from '../ui/features/contributions/ContributionsTab'
 import { DebtsTab } from '../ui/features/debts/DebtsTab'
 import { ScenariosTab } from '../ui/features/scenarios/ScenariosTab'
 import { DEFAULT_LOCALE, LocaleContext, useTranslation } from '../ui/i18n'
@@ -31,6 +32,7 @@ function TabContent({ tab }: { readonly tab: string }) {
     case 'assumptions':
       return <AssumptionsTab />
     case 'contributions':
+      return <ContributionsTab />
     case 'montecarlo':
       return <ComingSoon />
     default:
