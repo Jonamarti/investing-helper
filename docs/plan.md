@@ -435,18 +435,31 @@ el **mismo** `VITE_BASE_PATH` que usa `deploy` (`/<repo>/`) y arrancar
     todavía. De camino, `.dependency-cruiser.mjs` tenía dos fallos que dejaban
     `lint:deps` sin comprobar casi nada (ver `docs/arquitectura.md`): se han
     corregido y ahora sí cruza los 99 módulos de `packages/core` y `apps/web`.
-14. **Web/shell**: App, hash router (`#/<tab>`), i18n, formateo, stores,
-    `FieldRenderer` y campos.
-15. **Web/pestañas**: Supuestos → Deudas → Aportaciones → **Comparador** →
-    Monte Carlo → Escenarios.
-16. **Web/rendimiento**: `workerRunner` y `simulate.worker.ts` con fallback inline.
+14. ▶ **Web/shell**: hecho `App.tsx`, `hashRouter` (`#/<tab>`), `i18n` (ES/EN,
+    con las claves que ya se pintan — no todas las que emite el dominio),
+    `format/money.ts` (dinero y porcentaje) y `store/scenarioStore.ts`
+    (zustand, con `compareStrategies` calculado en cuanto cambia el
+    escenario). Falta `FieldRenderer` y los campos genericos, que hacen falta
+    para las pestañas que editan parametros (Supuestos, Deudas, ...).
+15. ▶ **Web/pestañas**: ✅ **Comparador** (recomendación, ranking, gráfico
+    nominal + poder de compra con Recharts, cruces). Supuestos, Deudas,
+    Aportaciones, Monte Carlo y Escenarios son un aviso de "todavía no
+    construida": necesitan `FieldRenderer` (Deudas, Aportaciones, Monte Carlo)
+    o la pestaña de biblioteca sobre `LocalStorageScenarioRepo` (Escenarios),
+    que es más trabajo que una tabla y un gráfico.
+16. **Web/rendimiento**: `workerRunner` y `simulate.worker.ts` con fallback
+    inline. Hoy `compareStrategies` corre siempre en el hilo principal: para
+    el tamaño de escenario actual es instantáneo, así que esto es una
+    optimización cuando haga falta, no un bloqueante.
 17. **E2E**: specs de Playwright (smoke + biblioteca de escenarios) y el job
     `e2e` en la CI.
 18. ✅ **Deploy**: repo público, Settings → Pages → Source: GitHub Actions
     activado. El job `deploy` corre en cada push a `main`.
 
-Los pasos 1–12 y el 18 ya están sobre `main`; este documento se actualiza según
-avanza el resto.
+Los pasos 1–13 y el 18 ya están sobre `main`, y los pasos 14 y 15 tienen la
+pestaña Comparador funcionando de verdad (con el escenario por defecto) y el
+resto de pestañas como aviso honesto de "no construida todavía". Este
+documento se actualiza según avanza el resto.
 
 ---
 

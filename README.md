@@ -5,10 +5,11 @@ deuda, invertir en bonos, invertir en renta variable o dejar el dinero en
 cuenta corriente, ajustando por inflación, crecimiento del sueldo y dinero
 libre mensual.
 
-**URL pública**: <https://jonamarti.github.io/investing-helper/>. Por ahora
-muestra solo el marcador de humo de la Fase 0 (confirma que React, Tailwind y
-el motor se empaquetan bien en el navegador): la interfaz real todavía no
-existe, ver [Estado actual](#estado-actual).
+**URL pública**: <https://jonamarti.github.io/investing-helper/>. Ya tiene la
+pestaña Comparador funcionando sobre el escenario por defecto (recomendación,
+ranking, gráfico de patrimonio nominal y poder de compra, cruces entre
+estrategias); el resto de pestañas son un aviso de "todavía no construida", ver
+[Estado actual](#estado-actual).
 
 ## Estado actual
 
@@ -16,9 +17,11 @@ El motor de simulación (`packages/core`) está completo y probado: modelo de
 dominio, amortización, simulador, las cinco estrategias, motor fiscal,
 analítica (TIR, ranking, recomendación), Monte Carlo (GBM, percentiles) y la
 capa `application` (casos de uso `compareStrategies`/`runMonteCarlo`/
-`validateScenario`, DTOs, puertos) que lo deja listo para que la UI lo consuma.
-La app web (`apps/web`) tiene ya la infraestructura (`localStorage`, RNG con
-semilla), pero la interfaz real todavía no existe: solo el andamiaje de la Fase 0. El detalle de qué hay hecho está en
+`validateScenario`, DTOs, puertos). La app web (`apps/web`) tiene la
+infraestructura (`localStorage`, RNG con semilla) y un primer shell real: hash
+router, i18n (ES/EN), un store de zustand y la pestaña **Comparador** completa.
+Las demás pestañas (Supuestos, Deudas, Aportaciones, Monte Carlo, Escenarios)
+todavía no existen. El detalle de qué hay hecho está en
 [docs/plan.md, §5](docs/plan.md#5-orden-de-implementación).
 
 ## Stack

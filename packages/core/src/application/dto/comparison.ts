@@ -19,6 +19,13 @@ export interface ValuePointDto {
   readonly netReturn: number
 }
 
+/** Un punto de la serie real (deflactada a poder de compra del mes 0). */
+export interface RealPointDto {
+  readonly monthIndex: number
+  readonly date: string
+  readonly value: number
+}
+
 export interface StrategyMetricsDto {
   readonly finalNominal: number
   readonly finalReal: number
@@ -52,6 +59,8 @@ export interface StrategyComparisonDto {
   readonly type: string
   readonly labelKey: string
   readonly points: readonly ValuePointDto[]
+  /** La misma serie, en poder de compra del mes 0 (para el grafico). */
+  readonly realPoints: readonly RealPointDto[]
   readonly metrics: StrategyMetricsDto
 }
 

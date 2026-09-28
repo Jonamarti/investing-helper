@@ -19,7 +19,9 @@ describe('compareStrategies', () => {
 
     for (const strategy of comparison.strategies) {
       expect(strategy.points).toHaveLength(60)
+      expect(strategy.realPoints).toHaveLength(60)
       expect(strategy.metrics.finalNominal).toBe(strategy.points.at(-1)?.value)
+      expect(strategy.metrics.finalReal).toBe(strategy.realPoints.at(-1)?.value)
     }
 
     expect(comparison.recommendation.headlineKey).toMatch(/^recommendation\.headline\./)

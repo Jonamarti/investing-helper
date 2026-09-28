@@ -1,6 +1,7 @@
 export type {
   ComparisonResultDto,
   CrossoverDto,
+  RealPointDto,
   RecommendationDto,
   RecommendationItemDto,
   StrategyComparisonDto,

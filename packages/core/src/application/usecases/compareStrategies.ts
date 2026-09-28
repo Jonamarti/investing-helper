@@ -1,6 +1,7 @@
 import {
   crossovers,
   rankStrategies,
+  realSeries,
   recommend,
   strategyMetrics,
   type RecommendationEntry,
@@ -85,6 +86,7 @@ export function compareStrategies(
       type: result.type,
       labelKey: result.labelKey,
       points: result.points.map((point) => ({ ...point })),
+      realPoints: realSeries(result.points, scenario.assumptions.inflationAnnual, exponent),
       metrics: toMetricsDto(metricsById.get(result.strategyId)!),
     })),
     ranking: ranked.map((entry) => entry.strategyId),

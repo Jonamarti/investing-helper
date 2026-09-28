@@ -11,7 +11,8 @@
  *   ui/             -> apps/web/src/ui                 (React)
  */
 const CORE = 'packages/core/src'
-const WEB = 'apps/web/src'
+const WEB_ROOT = 'apps/web'
+const WEB = `${WEB_ROOT}/src`
 
 const LAYER = {
   domain: `${CORE}/domain`,
@@ -63,9 +64,13 @@ export default {
     },
     {
       name: 'ui-only-imported-by-wiring',
-      comment: 'Regla 5: nadie importa ui/** salvo el cableado (main.tsx, container.ts, app/**).',
+      comment:
+        'Regla 5: nadie importa ui/** salvo el cableado (main.tsx, container.ts, app/**) ' +
+        'o los tests, que existen justo para importar lo que prueban.',
       severity: 'error',
-      from: { pathNot: `^(${LAYER.ui}|${WEB}/app|${WEB}/main\\.tsx$|${WEB}/container\\.ts$)` },
+      from: {
+        pathNot: `^(${LAYER.ui}|${WEB}/app|${WEB}/main\\.tsx$|${WEB}/container\\.ts$|${WEB_ROOT}/test|${WEB_ROOT}/e2e)`,
+      },
       to: { path: LAYER.ui },
     },
   ],

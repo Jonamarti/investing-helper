@@ -11,7 +11,7 @@ este documento es la versión legible de esas cinco reglas, no al revés.
 packages/core/src/domain          ← motor, cero dependencias
 packages/core/src/application     ← casos de uso + puertos + DTOs
 apps/web/src/infrastructure       ← adaptadores: localStorage, RNG
-apps/web/src/ui                   ← React (pendiente, paso 14 en adelante)
+apps/web/src/ui                   ← React (pestaña Comparador; el resto, pendiente)
 ```
 
 | Regla | Desde                                                           | Puede importar                                                                                                                                                                                         |
@@ -90,7 +90,10 @@ randomMonthlyReturn` es el punto de enganche con el motor: si una
   `persistence/jsonFileRepo.ts` (import/export) y `persistence/migrations.ts`
   (encadena migraciones de `Scenario.scenarioVersion`) sobre `domain/model`.
 - **`apps/web/src/ui`**: componentes React, formularios generados desde
-  `ParamSpec`, gráficos y las pestañas de la app. Solo habla con el dominio a
+  `ParamSpec` (pendiente: `FieldRenderer`), gráficos y las pestañas de la app.
+  Hecha la pestaña `features/comparison` (recomendación, ranking, gráfico
+  Recharts, cruces) sobre `store/scenarioStore.ts` (zustand) e `i18n/` (ES/EN).
+  Solo habla con el dominio a
   través de DTOs.
 
 ## Cómo añadir una estrategia nueva

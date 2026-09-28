@@ -1,0 +1,62 @@
+/**
+ * Diccionario en espanol.
+ *
+ * Cubre solo las claves que la interfaz ya pinta: la pestana Comparador y el
+ * andamiaje de navegacion. El resto de claves que emite el dominio (params.*,
+ * validation.*, loan.*, ...) se anaden cuando se construya la pestana que las
+ * usa, no antes.
+ */
+export const es: Readonly<Record<string, string>> = {
+  'app.title': 'investing-helper',
+  'app.tagline':
+    'Compara, sobre los mismos datos, si conviene amortizar deuda, bonos, renta variable o cuenta corriente.',
+
+  'nav.comparison': 'Comparador',
+  'nav.assumptions': 'Supuestos',
+  'nav.debts': 'Deudas',
+  'nav.contributions': 'Aportaciones',
+  'nav.montecarlo': 'Monte Carlo',
+  'nav.scenarios': 'Escenarios',
+
+  'tab.comingSoon': 'Esta pestaña todavía no está construida. Ver docs/plan.md, §5.',
+
+  'scenario.default.name': 'Escenario por defecto',
+
+  'strategy.cash.label': 'Cuenta corriente',
+  'strategy.bonds.label': 'Bonos',
+  'strategy.equity.label': 'Renta variable',
+  'strategy.mixed.label': 'Cartera mixta',
+  'strategy.debtPaydown.label': 'Amortizar deuda',
+
+  'comparison.ranking.title': 'Ranking',
+  'comparison.ranking.strategy': 'Estrategia',
+  'comparison.ranking.finalNominal': 'Patrimonio nominal',
+  'comparison.ranking.finalReal': 'Poder de compra',
+  'comparison.ranking.irrAnnual': 'TIR anual',
+  'comparison.ranking.totalTax': 'Impuestos pagados',
+  'comparison.ranking.noIrr': '—',
+
+  'comparison.chart.title': 'Evolución del patrimonio',
+  'comparison.chart.nominal': '{label} (nominal)',
+  'comparison.chart.real': '{label} (poder de compra)',
+
+  'comparison.crossovers.title': 'Cruces entre estrategias',
+  'comparison.crossovers.empty': 'Ninguna estrategia adelanta a otra en este horizonte.',
+  'comparison.crossovers.item': '{after} supera a {before} en el mes {month}',
+
+  'comparison.recommendation.title': 'Recomendación',
+
+  'recommendation.headline.winner': '{strategyId} es la mejor opción',
+  'recommendation.headline.tie': 'Empate técnico entre {a} y {b}',
+  'recommendation.headline.empty': 'Añade al menos una estrategia para comparar',
+
+  'recommendation.reason.winner': 'Es la que más patrimonio real deja al final del horizonte',
+  'recommendation.reason.tie': 'La diferencia entre {a} y {b} es menor del 1 %',
+  'recommendation.reason.debtBeatsMarket':
+    'El tipo del préstamo ({loanRate}) supera a la mejor inversión disponible ({marketRate})',
+
+  'recommendation.caveat.negativeReal':
+    'La rentabilidad real es negativa ({netGainReal}): se pierde poder adquisitivo',
+  'recommendation.caveat.highTax':
+    'Los impuestos se llevan una parte importante de la ganancia ({taxShare})',
+}
